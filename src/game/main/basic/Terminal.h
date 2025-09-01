@@ -1,7 +1,7 @@
 #ifndef TERMINAL_H
 #define TERMINAL_H
 
-#include <string>
+#include <iostream>
 #include <windows.h>
 #include <conio.h>
 

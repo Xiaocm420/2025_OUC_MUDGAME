@@ -1,5 +1,6 @@
 #include "Terminal.h"
 #include <memory>
+#include <vector>
 
 // === 单例实现 ===
 
@@ -140,14 +141,13 @@ void Terminal::print(const std::string& text) {
     if (wchars_num <= 0) return;
     
     
-    wchar_t* wstr = new wchar_t[wchars_num];
-    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wstr, wchars_num);
+    // 使用 std::vector<wchar_t> 管理内存，确保异常安全
+    std::vector<wchar_t> wstr(wchars_num);
+    MultiByteToWideChar(CP_UTF8, 0, text.c_str(), -1, wstr.data(), wchars_num);
     
     // 输出宽字符串
     DWORD written;
-    WriteConsoleW(hConsoleOutput, wstr, wcslen(wstr), &written, NULL);
-    
-    delete[] wstr;
+    WriteConsoleW(hConsoleOutput, wstr.data(), wcslen(wstr.data()), &written, NULL);
 }
 
 // === 终端属性 ===
