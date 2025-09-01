@@ -6,17 +6,16 @@ PlayerService& PlayerService::getInstance() {
     return instance;
 }
 
-void PlayerService::registerPlayer(std::string name) {
+void PlayerService::shutdown() {
+    // TODO
+}
+
+void PlayerService::registerPlayer(const std::string& name) {
     player.setName(name);
 }
 
 Player &PlayerService::getPlayer() {
     return player;
-}
-
-const std::string &PlayerService::getCurrentSceneID() {
-    SceneManager& sceneManager = SceneManager::getInstance();
-    sceneManager.getCurrentSceneID();
 }
 
 PlayerService::PlayerService() = default;

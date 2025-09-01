@@ -3,20 +3,31 @@
 
 #include "Terminal.h"
 #include <string>
-#include <functional>
-#include <vector>
 
 class SceneBase {
 public:
     virtual ~SceneBase() = default;
 
-    // 主接口
+    // 生命周期管理
     virtual void onEnter() = 0;
     virtual void onExit() = 0;
+
     virtual void processInput(const std::string& input) = 0;
     virtual void processImmediateKey(char key) = 0;
     virtual void update() = 0;
     virtual void render() const = 0;
+
+    // 设置场景位置和尺寸
+    void setPosition(int x, int y);
+    void setSize(int width, int height);
+
+    // 相对坐标绘制方法
+    void drawRelative(int relX, int relY, const std::string& content) const;
+    void drawRelativeBorder(int relX, int relY, int width, int height) const;
+    void drawRelativeTitledBorder(int relX, int relY, int width, int height,
+                                  const std::string& title) const;
+    /// 居中绘制
+    void drawInCenter(int relY, const std::string& content) const;
 
     // 边框绘制功能
     void drawBorder(int x, int y, int width, int height) const;
@@ -24,6 +35,10 @@ public:
                           const std::string& title) const;
 
 protected:
+    int x = 0; // 场景左上角X坐标
+    int y = 0; // 场景左上角Y坐标
+    int width = 0; // 场景宽度
+    int height = 0; // 场景高度
     Terminal& terminal = Terminal::getInstance();
 
 private:

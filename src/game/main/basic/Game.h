@@ -19,9 +19,8 @@ public:
 
 private:
     void init();
-    void processInput();
     void initScenes();
-    void shutdown();
+    void processInput();
 
     SceneManager& sceneManager = SceneManager::getInstance();
     Terminal& terminal = Terminal::getInstance();

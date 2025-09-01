@@ -1,7 +1,41 @@
 #include "SceneBase.h"
 #include "Terminal.h"
+void SceneBase::setPosition(int x, int y) {
+    this->x = x;
+    this->y = y;
+}
 
-// 获取边框字符（可自定义）
+void SceneBase::setSize(int width, int height) {
+    this->width = width;
+    this->height = height;
+}
+
+void SceneBase::drawRelative(int relX, int relY, const std::string& content) const {
+    if (relX >= 0 && relX < width && relY >= 0 && relY < height) {
+        terminal.setCursorPosition(x + relX, y + relY);
+        terminal.print(content);
+    }
+}
+
+void SceneBase::drawRelativeBorder(int relX, int relY, int width, int height) const {
+    // 在场景内部绘制相对边框
+    drawBorder(x + relX, y + relY, width, height);
+}
+
+void SceneBase::drawRelativeTitledBorder(int relX, int relY, int width, int height, const std::string& title) const {
+    // 在场景内部绘制相对边框
+    drawTitledBorder(x + relX, y + relY, width, height, title);
+}
+
+void SceneBase::drawInCenter(int relY, const std::string& content) const {
+    int length = content.length();
+    if (relY >= 0 && relY < height) {
+        terminal.setCursorPosition(x + (width - 2 - length) / 2, y + relY);
+        terminal.print(content);
+    }
+}
+
+// 获取边框字符（可在派生类中覆盖）
 void SceneBase::getBorderChars(std::string& topLeft, std::string& topRight,
                                std::string& bottomLeft, std::string& bottomRight,
                                std::string& horizontal, std::string& vertical) const {

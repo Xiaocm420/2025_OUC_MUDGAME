@@ -8,7 +8,7 @@ public:
     Player();
 
     const std::string& getName();
-    void setName(std::string name);
+    void setName(const std::string& name);
 
     int getX() const;
     int getY() const;

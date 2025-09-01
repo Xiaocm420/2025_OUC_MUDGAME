@@ -3,7 +3,7 @@
 Player::Player() : x(-1), y(-1) {
 }
 
-void Player::setName(std::string name) {
+void Player::setName(const std::string& name) {
     this->name = name;
 }
 

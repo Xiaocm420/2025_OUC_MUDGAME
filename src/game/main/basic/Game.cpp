@@ -1,10 +1,8 @@
 #include "Game.h"
-#include "PlayerService.h"
 #include "SceneManager.h"
 #include "Terminal.h"
-#include "../scene/NormalScene.h"
-#include "../class/entity/player/Player.h"
-#include <iostream>
+#include "../scene/StartScene.h"
+#include <algorithm>
 #include <memory>
 
 Game::Game() {
@@ -12,7 +10,8 @@ Game::Game() {
 }
 
 Game::~Game() {
-    shutdown();
+    playerService.shutdown();
+    sceneManager.shutdown();
 }
 
 void Game::run() {
@@ -20,11 +19,15 @@ void Game::run() {
 
     // 游戏主循环
     while (running) {
-        // 获取当前场景
-        auto* scene = sceneManager.getCurrentScene();
+        terminal.clearScreen();
 
-        // 渲染当前场景
-        if (scene) scene->render();
+        // 获取当前场景
+        auto activeScenes = sceneManager.getActiveScenes();
+
+        // 渲染所有活动场景
+        for (auto* scene : activeScenes) {
+            scene->render();
+        }
 
         // 处理输入
         processInput();
@@ -39,32 +42,20 @@ void Game::init() {
     initScenes();
 }
 
-void Game::initScenes() {    
-    sceneManager.registerScene("start", std::make_unique<NormalScene>());
-    sceneManager.switchScene("start");
+void Game::initScenes() {
+    sceneManager.registerScene("startMenu", std::make_unique<StartScene>());
+    sceneManager.pushScene("startMenu", 0);
 }
 
 void Game::processInput() {
-    auto* scene = sceneManager.getCurrentScene();
-    if (!scene) return;
+    // 获取所有活动场景（按层级倒序，高层级优先处理输入）
+    auto activeScenes = sceneManager.getActiveScenes();
+    std::reverse(activeScenes.begin(), activeScenes.end());
 
-    // 处理即时按键
-    // TODO: 目前不知为何不工作
-    char immediateKey = terminal.getKey();
+    char immediateKey = getchar();
     if (immediateKey != ':') {
-        scene->processImmediateKey(immediateKey);
+        for (auto* scene : activeScenes) {
+            scene->processImmediateKey(immediateKey);
+        }
     }
-
-    // // 处理完整命令
-    // std::string input = terminal.getLine();
-    // if (!input.empty()) {
-    //     if (input == "quit") {
-    //         running = false;
-    //     } else {
-    //         scene->processInput(input);
-    //     }
-    // }
-}
-
-void Game::shutdown() {
 }
