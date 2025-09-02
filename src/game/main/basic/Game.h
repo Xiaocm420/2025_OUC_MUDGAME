@@ -19,9 +19,7 @@ public:
     void exitGame();
 
 private:
-    void init();
-
-    bool running = false;
+    bool running;
     PlayerService& playerService = PlayerService::getInstance();
 
     std::unique_ptr<View> view_; 
