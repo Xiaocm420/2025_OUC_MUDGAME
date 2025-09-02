@@ -1,5 +1,8 @@
 #include "Skill.h"
-#include <bits/stdc++.h>
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 // ========== 构造函数实现 ==========
 
