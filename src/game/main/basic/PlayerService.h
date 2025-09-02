@@ -1,7 +1,8 @@
 #ifndef PLAYER_SERVICE_H
 #define PLAYER_SERVICE_H
 
-#include "../class/entity/player/Player.h"
+#include "../class/entity/Player.h"
+#include <string>
 
 /*
  *  PlayerService 类：
@@ -24,7 +25,9 @@ public:
     // 玩家注册
     void registerPlayer(const std::string& name);
 
+    // 获取玩家对象
     Player& getPlayer();
+
 private:
     PlayerService();
     ~PlayerService();
