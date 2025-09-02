@@ -1,10 +1,8 @@
 #include "PlayerService.h"
 
+PlayerService::PlayerService() = default;
 
-void PlayerService::initialize() {
-    // 初始化玩家服务
-    // TODO
-}
+PlayerService::~PlayerService() = default;
 
 PlayerService& PlayerService::getInstance() {
     static PlayerService instance;
@@ -13,10 +11,13 @@ PlayerService& PlayerService::getInstance() {
 
 void PlayerService::shutdown() {
     // TODO
-    // 玩家数据保存校徽逻辑
+    // 玩家数据保存逻辑
 }
 
+void PlayerService::registerPlayer(const std::string& name) {
+    player.setName(name);
+}
 
-PlayerService::PlayerService() = default;
-
-PlayerService::~PlayerService() = default;
+Player &PlayerService::getPlayer() {
+    return player;
+}
