@@ -4,13 +4,12 @@
 #include <iostream>
 #include <string>
 
-Game::Game() {
-    init();
+Game::Game() : running(false) {
     view_ = std::make_unique<View>(*this);
 }
 
 Game::~Game() {
-    playerService.shutdown();
+    PlayerService::shutdown();
 }
 
 void Game::run() {
@@ -18,10 +17,6 @@ void Game::run() {
     if (view_) {
         view_->ShowMainMenu();
     }
-}
-
-void Game::init() {
-    playerService.initialize();
 }
 
 void Game::startNewGame() {
