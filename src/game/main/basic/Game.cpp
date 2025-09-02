@@ -1,61 +1,61 @@
 #include "Game.h"
-#include "SceneManager.h"
-#include "Terminal.h"
-#include "../scene/StartScene.h"
-#include <algorithm>
-#include <memory>
+#include "View.h" // 引入视图层的头文件
+
+#include <iostream>
+#include <string>
 
 Game::Game() {
     init();
+    view_ = std::make_unique<View>(*this);
 }
 
 Game::~Game() {
     playerService.shutdown();
-    sceneManager.shutdown();
 }
 
 void Game::run() {
     running = true;
-
-    // 游戏主循环
-    while (running) {
-        terminal.clearScreen();
-
-        // 获取当前场景
-        auto activeScenes = sceneManager.getActiveScenes();
-
-        // 渲染所有活动场景
-        for (auto* scene : activeScenes) {
-            scene->render();
-        }
-
-        // 处理输入
-        processInput();
+    if (view_) {
+        view_->ShowMainMenu();
     }
 }
 
 void Game::init() {
-    // 初始化终端
-    Terminal::init();
-
-    // 初始化游戏场景
-    initScenes();
+    playerService.initialize();
 }
 
-void Game::initScenes() {
-    sceneManager.registerScene("startMenu", std::make_unique<StartScene>());
-    sceneManager.pushScene("startMenu", 0);
-}
-
-void Game::processInput() {
-    // 获取所有活动场景（按层级倒序，高层级优先处理输入）
-    auto activeScenes = sceneManager.getActiveScenes();
-    std::reverse(activeScenes.begin(), activeScenes.end());
-
-    char immediateKey = getchar();
-    if (immediateKey != ':') {
-        for (auto* scene : activeScenes) {
-            scene->processImmediateKey(immediateKey);
-        }
+void Game::startNewGame() {
+    if (view_) {
+        view_->ShowLoadingScreen("正在加载新游戏");
     }
+    std::cout << "开始新游戏..." << std::endl;
+    // TODO
+    // ... 此处是开始新游戏的具体逻辑 ...
+}
+
+void Game::loadGame() {
+    std::string saveName = "default";
+    if (view_) {
+        view_->ShowLoadingScreen("正在打开存档{" + saveName + "}");
+    }
+    std::cout << "读取存档..." << std::endl;
+    // TODO
+    // ... 此处是读取存档的具体逻辑 ...
+}
+
+void Game::showGameIntro() {
+    std::cout << "游戏介绍..." << std::endl;
+    // TODO
+    // ... 显示介绍的具体逻辑 ...
+}
+
+void Game::showGameSettings() {
+    std::cout << "游戏设置..." << std::endl;
+    // TODO
+    // ... 显示设置的具体逻辑 ...
+}
+
+void Game::exitGame() {
+    running = false;
+    std::cout << "退出游戏..." << std::endl;
 }

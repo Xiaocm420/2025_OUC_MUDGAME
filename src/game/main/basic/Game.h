@@ -1,31 +1,28 @@
-#ifndef GAME_H
-#define GAME_H
+// Game.h
+#pragma once
 
 #include "PlayerService.h"
-#include "SceneManager.h"
-#include "Terminal.h"
-#include "../class/entity/player/Player.h"
+#include <memory>
 
-/**
- * @class Game
- * @brief 游戏主控制类，管理游戏生命周期和主循环
- */
+class View;
+
 class Game {
 public:
     Game();
     ~Game();
-    
+
     void run();
+    void startNewGame();
+    void loadGame();
+    void showGameIntro();
+    void showGameSettings();
+    void exitGame();
 
 private:
     void init();
-    void initScenes();
-    void processInput();
 
-    SceneManager& sceneManager = SceneManager::getInstance();
-    Terminal& terminal = Terminal::getInstance();
-    PlayerService& playerService = PlayerService::getInstance();
     bool running = false;
-};
+    PlayerService& playerService = PlayerService::getInstance();
 
-#endif // GAME_H
+    std::unique_ptr<View> view_; 
+};

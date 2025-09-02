@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "basic/Game.h"
-#include "basic/Terminal.h"
 
 int main() {
     try {
