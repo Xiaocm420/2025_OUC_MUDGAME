@@ -1,5 +1,7 @@
 #include "View.h"
 #include "Game.h"
+#include "Dialog.h"
+#include "../class/entity/Player.h"
 
 #include "FTXUI/component/component.hpp"
 #include "FTXUI/component/screen_interactive.hpp"
@@ -137,7 +139,7 @@ void View::showLoadingScreen(const std::string& subtitle) {
 
     auto component = Renderer([&] {
         return vbox({
-            text("加载中") | color(Color::Green) | bold | center,
+            text("加 载 中") | color(Color::Green) | bold | center,
             text(subtitle) | color(Color::White) | center,
             separator(),
             gauge(progress) | flex | color(Color::Green)
@@ -169,3 +171,110 @@ void View::showLoadingScreen(const std::string& subtitle) {
     loadingThread.join();
 }
 
+
+void View::showGameScreen() {
+    using namespace ftxui;
+
+    auto screen = ScreenInteractive::Fullscreen();
+
+    // 游戏状态数据
+    std::string player_location = "格斗俱乐部"; // TODO: 应当接入 API
+    std::string command_input;
+
+    auto button_phone = Button(" 我的手机 ", [&] { /* ... */ }, ButtonOption::Animated());
+    auto button_settings = Button(" 游戏设置 ", [&] { game_logic_.showGameSettings(); }, ButtonOption::Animated());
+    auto button_bag = Button("   背包  ", [&] { /* ... */ }, ButtonOption::Animated());
+    auto button_schedule = Button(" 我的日程 ", [&] { /* ... */ }, ButtonOption::Animated());
+
+
+    auto navigation_container = Container::Vertical({
+        button_phone,
+        button_settings,
+        button_bag,
+        button_schedule,
+    });
+
+    InputOption option;
+    option.on_enter = [&] {
+        game_logic_.getDialog().processPlayerInput(command_input);
+        command_input.clear();
+    };
+    auto input_command = Input(&command_input, "输入指令或对话...", option);
+
+    auto main_view_renderer = Renderer([&] {
+        const auto& messages = game_logic_.getDialog().getHistory();
+        Elements message_elements;
+        for (const auto& msg : messages) {
+            auto who_color = (msg.who == "主角") ? Color::Green : Color::Cyan;
+            message_elements.push_back(
+                hbox({
+                    text(msg.who) | bold | color(who_color),
+                    text(": "),
+                    text(msg.content)
+                })
+            );
+        }
+
+        if (!message_elements.empty()) {
+            message_elements.back() |= focus;
+        }
+
+        return window(text(" 对话记录 "), vbox(message_elements) | flex) | flex;
+    });
+    auto interactive_main_view = CatchEvent(main_view_renderer, [](Event) { return false; });
+
+    // --- 容器管理 ---
+    auto main_container = Container::Vertical({
+        interactive_main_view,
+        navigation_container,
+        input_command,
+    });
+
+    // --- 最终渲染器 ---
+    auto final_renderer = Renderer(main_container, [&] {
+        // -- 顶部 --
+        auto header = hbox({
+            text("   拳王之路   ") | bold | color(Color::Red),
+            filler(),
+            text("当前位置: " + player_location + " ") | color(Color::Yellow),
+        }) | border;
+
+        // -- 中间主区域 --
+        auto main_content = hbox({
+            // 左侧：主视窗和状态栏
+            vbox({
+                // [修复] 将滚动条装饰器应用在 Component 的渲染结果上
+                interactive_main_view->Render() | vscroll_indicator | yframe | flex,
+
+                // 状态栏
+                window(text(" 玩家状态 "),
+                    hbox({
+                        text(" ♥ 生命值 ") | color(Color::Green),
+                        gauge(game_logic_.getPlayer().getHealth()) | flex | color(Color::Green),
+                        separator(),
+                        text(" ⚡ 疲劳值 ") | color(Color::Yellow),
+                        gauge(game_logic_.getPlayer().getFatigue()) | flex | color(Color::Yellow),
+                        separator(),
+                        text(" 🍗 饥饿值 ") | color(Color::RedLight),
+                        gauge(game_logic_.getPlayer().getHunger()) | flex | color(Color::RedLight),
+                    })
+                )
+            }) | flex,
+
+            // 右侧：导航面板
+            window(text(" 功能菜单 "), navigation_container->Render()) | size(WIDTH, EQUAL, 22), // 稍微加宽以适应字符画
+        });
+
+        // -- 底部 --
+        auto footer = window(text(" 指令 "), input_command->Render());
+
+        // -- 整体布局 --
+        return vbox({
+            header,
+            main_content | flex,
+            footer,
+        });
+    });
+
+    screen.Loop(final_renderer);
+}

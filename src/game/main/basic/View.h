@@ -14,10 +14,13 @@ public:
     void showMainMenu();
 
     // 加载栏
-    void showLoadingScreen(const std::string& subtitle);
+    static void showLoadingScreen(const std::string& subtitle);
+
+    // 游戏界面
+    void showGameScreen();
 
     // 游戏介绍
-    void showGameIntroScreen();
+    static void showGameIntroScreen();
 
 private:
     // 保存 Game 对象的引用，以便在按钮点击时调用其方法

@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player() : name("Player"), healthiness(100), strength(1),
+Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(100), strength(1),
                    stamina(1), agility(1), hunger(100), fatigue(100), money(0) {
 }
 
