@@ -6,11 +6,13 @@
 #include "FTXUI/component/component.hpp"
 #include "FTXUI/component/screen_interactive.hpp"
 #include "FTXUI/dom/elements.hpp"
+#include "FTXUI/screen/string.hpp"
 
 #include <chrono>
 #include <random>
 #include <thread>
 #include <vector>
+#include <atomic>
 
 View::View(Game& game_logic) : game_logic_(game_logic) {}
 
@@ -177,104 +179,180 @@ void View::showGameScreen() {
 
     auto screen = ScreenInteractive::Fullscreen();
 
-    // 游戏状态数据
-    std::string player_location = "格斗俱乐部"; // TODO: 应当接入 API
-    std::string command_input;
+    // 使用通用布局构建
+    auto component = makeGameLayout(
+            true,
+            true,
+            true,
+            false,
+            "格斗俱乐部", // TODO: 接入API
+            PLAYER,
+            "输入指令或对话..."
+    );
 
+    // 每20ms打印一个字
+    std::atomic<bool> refresh_running{true};
+    std::thread refresh_thread([&] {
+        while (refresh_running) {
+            screen.PostEvent(Event::Custom);
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+        }
+    });
+
+    screen.Loop(component);
+
+    refresh_running = false;
+    if (refresh_thread.joinable()) refresh_thread.join();
+}
+
+ftxui::Component View::makeGameLayout(
+    bool showRightButtons,
+    bool showStatusBar,
+    bool allowInput,
+    bool isVoiceOver,
+    const std::string& playerLocation,
+    const std::string& who,
+    const std::string& inputPlaceholder,
+     std::optional<ftxui::Component> externalInput) {
+
+    using namespace ftxui;
+
+    // 输入组件
+    Component inputCommand;
+    if (externalInput) {
+        // 如果外部提供了输入组件，就用它
+        inputCommand = *externalInput;
+    } else {
+        // 否则，使用内部默认的输入组件
+        static std::string command_input;
+        InputOption option;
+        if (allowInput) {
+            option.on_enter = [&] {
+                game_logic_.getDialog().processPlayerInput(command_input);
+                command_input.clear();
+            };
+        }
+        inputCommand = Input(&command_input, inputPlaceholder, option);
+    }
+
+    // 右侧按钮组件
     auto button_phone = Button(" 我的手机 ", [&] { /* ... */ }, ButtonOption::Animated());
     auto button_settings = Button(" 游戏设置 ", [&] { game_logic_.showGameSettings(); }, ButtonOption::Animated());
     auto button_bag = Button("   背包  ", [&] { /* ... */ }, ButtonOption::Animated());
     auto button_schedule = Button(" 我的日程 ", [&] { /* ... */ }, ButtonOption::Animated());
-
-
-    auto navigation_container = Container::Vertical({
+    auto navigationContainer = Container::Vertical({
         button_phone,
         button_settings,
         button_bag,
         button_schedule,
     });
 
-    InputOption option;
-    option.on_enter = [&] {
-        game_logic_.getDialog().processPlayerInput(command_input);
-        command_input.clear();
-    };
-    auto input_command = Input(&command_input, "输入指令或对话...", option);
+    static int scroll_index = 0;
 
-    auto main_view_renderer = Renderer([&] {
+    auto mainViewRenderer = Renderer([&, isVoiceOver] {
+        // 代码"市中心" :(
+        const auto& messages = this->game_logic_.getDialog().getHistory();
+        Elements messageElements;
+        size_t total = messages.size();
+        size_t end = total > static_cast<size_t>(scroll_index) ? total - scroll_index : 0;
+
+        for (size_t i = 0; i < end; ++i) {
+           const auto& msg = messages[i];
+           auto whoColor = (msg.who == who) ? Color::Green : Color::Cyan;
+           auto glyphs = Utf8ToGlyphs(msg.content); // 防止出字的时候中文乱码
+           size_t contentSize = glyphs.size();
+           size_t shownChars = contentSize;
+           auto now = std::chrono::steady_clock::now();
+           auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - msg.start_time).count();
+           shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20)); // 出字速度 20ms/字
+           std::string shownContent;
+           for (size_t j = 0; j < shownChars && j < glyphs.size(); ++j) shownContent += glyphs[j];
+           bool typing = shownChars < contentSize;
+           if (typing) shownContent += "_";
+           messageElements.push_back(hbox({
+               text(msg.who) | bold | color(whoColor),
+               text(isVoiceOver ? "" :  ": "),
+               paragraph(shownContent) | flex
+           }));
+        }
+        if (!messageElements.empty()) messageElements.back() |= focus;
+        return window(text(" 对话记录 "), vbox(messageElements) | flex | yframe); // 移除 vscroll_indicator，因为它在外部
+    });
+
+    // 事件处理器 (CatchEvent 是一个 Component)
+    auto interactiveMainView = CatchEvent(mainViewRenderer, [&](Event e) {
         const auto& messages = game_logic_.getDialog().getHistory();
-        Elements message_elements;
-        for (const auto& msg : messages) {
-            auto who_color = (msg.who == "主角") ? Color::Green : Color::Cyan;
-            message_elements.push_back(
-                hbox({
-                    text(msg.who) | bold | color(who_color),
-                    text(": "),
-                    text(msg.content)
-                })
-            );
+        int max_offset = static_cast<int>(messages.size()) - 1; // 偏移量最多是size-1
+        if (max_offset < 0) max_offset = 0;
+        if (e == Event::ArrowUp || e == Event::PageUp) {
+            scroll_index = std::min(scroll_index + (e == Event::PageUp ? 5 : 1), max_offset);
+            return true;
         }
-
-        if (!message_elements.empty()) {
-            message_elements.back() |= focus;
+        if (e == Event::ArrowDown || e == Event::PageDown) {
+            scroll_index = std::max(scroll_index - (e == Event::PageDown ? 5 : 1), 0);
+            return true;
         }
-
-        return window(text(" 对话记录 "), vbox(message_elements) | flex) | flex;
-    });
-    auto interactive_main_view = CatchEvent(main_view_renderer, [](Event) { return false; });
-
-    // --- 容器管理 ---
-    auto main_container = Container::Vertical({
-        interactive_main_view,
-        navigation_container,
-        input_command,
+        if (e == Event::End) { scroll_index = 0; return true; }
+        if (e == Event::Home) { scroll_index = max_offset; return true; }
+        return false;
     });
 
-    // --- 最终渲染器 ---
-    auto final_renderer = Renderer(main_container, [&] {
-        // -- 顶部 --
+    // 组件聚合，可交互组件
+    auto mainContainer = Container::Vertical({
+        interactiveMainView,
+        navigationContainer,
+        inputCommand,
+    });
+
+
+    // 渲染器
+    return Renderer(mainContainer, [=] {
+        // Header
         auto header = hbox({
             text("   拳王之路   ") | bold | color(Color::Red),
             filler(),
-            text("当前位置: " + player_location + " ") | color(Color::Yellow),
+            text("当前位置: " + playerLocation + " ") | color(Color::Yellow),
         }) | border;
 
-        // -- 中间主区域 --
-        auto main_content = hbox({
-            // 左侧：主视窗和状态栏
-            vbox({
-                // [修复] 将滚动条装饰器应用在 Component 的渲染结果上
-                interactive_main_view->Render() | vscroll_indicator | yframe | flex,
-
-                // 状态栏
+        // 左侧主区域
+        Elements left_children;
+        // 每次渲染都调用 .Render() 来获取最新画面
+        left_children.push_back(interactiveMainView->Render() | vscroll_indicator | yframe | flex);
+        if (showStatusBar) {
+            left_children.push_back(
                 window(text(" 玩家状态 "),
-                    hbox({
-                        text(" ♥ 生命值 ") | color(Color::Green),
-                        gauge(game_logic_.getPlayer().getHealth()) | flex | color(Color::Green),
-                        separator(),
-                        text(" ⚡ 疲劳值 ") | color(Color::Yellow),
-                        gauge(game_logic_.getPlayer().getFatigue()) | flex | color(Color::Yellow),
-                        separator(),
-                        text(" 🍗 饥饿值 ") | color(Color::RedLight),
-                        gauge(game_logic_.getPlayer().getHunger()) | flex | color(Color::RedLight),
-                    })
-                )
-            }) | flex,
+                       hbox({
+                           text(" 生命值 ") | color(Color::Green),
+                           gauge(game_logic_.getPlayer().getHealth()) | flex | color(Color::Green),
+                           separator(),
+                           text(" 疲劳值 ") | color(Color::Yellow),
+                           gauge(game_logic_.getPlayer().getFatigue()) | flex | color(Color::Yellow),
+                           separator(),
+                           text(" 饥饿值 ") | color(Color::RedLight),
+                           gauge(game_logic_.getPlayer().getHunger()) | flex | color(Color::RedLight),
+                       }))
+            );
+        }
+        auto left_panel = vbox(left_children) | flex;
 
-            // 右侧：导航面板
-            window(text(" 功能菜单 "), navigation_container->Render()) | size(WIDTH, EQUAL, 22), // 稍微加宽以适应字符画
-        });
+        // 右侧面板
+        Element rightPanel = emptyElement();
+        if (showRightButtons) {
+            // 每次渲染都调用 .Render()
+            rightPanel = window(text(" 功能菜单 "), navigationContainer->Render()) | size(WIDTH, EQUAL, 22);
+        }
 
-        // -- 底部 --
-        auto footer = window(text(" 指令 "), input_command->Render());
+        // 中间主体
+        auto mainContent = hbox({ left_panel, rightPanel });
 
-        // -- 整体布局 --
-        return vbox({
-            header,
-            main_content | flex,
-            footer,
-        });
+        // 底部 Footer
+        Element footer = emptyElement();
+        if(allowInput) {
+            // 每次渲染都调用 .Render()
+            footer = window(text(" 指令 "), inputCommand->Render());
+        }
+
+        // 最终返回完整的、动态生成的布局
+        return vbox({ header, mainContent | flex, footer });
     });
-
-    screen.Loop(final_renderer);
 }

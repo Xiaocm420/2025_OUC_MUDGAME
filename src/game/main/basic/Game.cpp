@@ -32,7 +32,7 @@ void Game::startNewGame() const {
     std::cout << "开始新游戏..." << std::endl;
     // TODO
     // ... 此处是开始新游戏的具体逻辑 ...
-    GameProcess::newStart(dialog_, player_);
+    PLAYER = GameProcess::newStart(dialog_, player_, view_);
 
     if (view_) {
         view_->showGameScreen();

@@ -42,7 +42,7 @@ protected:
     Game& game_logic_;
 
 private:
-    std::string name;
+    std::string name;       // 玩家名
 
     // 核心属性
     double healthiness;     // 健康度

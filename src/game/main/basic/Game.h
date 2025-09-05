@@ -4,9 +4,6 @@
 #include "../class/entity/Player.h"
 #include "Dialog.h"
 
-
-static std::string SYSTEM = "系统";
-
 class View;
 
 class Dialog;
@@ -34,3 +31,9 @@ private:
     Dialog* dialog_;
     Player* player_;
 };
+
+static std::string SYSTEM = "系统";
+inline static std::string PLAYER; // 比较方便，以后可能有改名卡道具
+
+inline static const std::string VOICEOVER = ""; // 旁白
+inline static const std::string UNKNOWN = "???";

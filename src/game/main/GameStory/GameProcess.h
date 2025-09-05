@@ -12,6 +12,9 @@
 #include "FTXUI/component/component.hpp"
 #include "FTXUI/component/screen_interactive.hpp"
 #include "FTXUI/dom/elements.hpp"
+#include <chrono>
+#include <thread>
+#include <atomic>
 
 class GameProcess : public Dialog {
 public:
@@ -21,87 +24,73 @@ public:
         }
     }
 
-    static void newStart(Dialog* dialog_, Player* player) {
+    static std::string newStart(Dialog* dialog_, Player* player, View* view) {
         using namespace ftxui;
 
-        // 1. 创建一个全屏的交互式屏幕实例
         auto screen = ScreenInteractive::Fullscreen();
 
-        // 2. 准备输入组件所需的数据
-        std::string input_name; // 使用一个明确的变量名
+        // 1. 定义专用于此场景的输入组件及其行为
+        std::string name;
+        auto nameInputComponent = Input(&name, "输入你的名字", {
+            .on_enter = [&] {
+                name = trim(name);
+                if (name.empty()) {
+                    dialog_->addMessage(UNKNOWN, "你没名字吗？给你自己取一个名字吧");
+                    name.clear();
+                    return; // 名字无效，界面不退出
+                } else if (8 <= getLength(name)) {
+                    dialog_->addMessage(UNKNOWN, "名字长度太长了，记不住，换个短一点的，比如 8 个字以内的");
+                    name.clear();
+                    return;
+                } else if (1 >= getLength(name)) {
+                    dialog_->addMessage(UNKNOWN, "你名字也太短了吧，有没有个长一点的名字");
+                    name.clear();
+                    return;
+                }
 
-        // 引导改名 - 这条消息会作为对话历史的初始内容
+                dialog_->addMessage(_00000002.who, name + _00000002.content);
+
+                // 名字有效，给名字赋值
+                player->setName(name);
+
+                // 任务完成，退出当前屏幕循环
+                screen.Exit();
+            },
+        });
+
+        // 2. 调用 View 的通用布局函数来构建UI
+        //    我们传入定制的参数和刚刚创建的输入组件
+        auto layout_component = view->makeGameLayout(
+            false,                   // 不显示右侧按钮
+            false,                   // 不显示状态栏
+            true,                    // 禁用 makeGameLayout 内部的默认输入框
+            false,                   // 不是旁白
+            "???",                // 玩家位置
+            "",                   // 自己的称呼（用于高亮对话）
+            "",                   // 默认输入框的占位符（此场景下无用）
+            nameInputComponent    // <-- 这里！注入我们自定义的输入组件
+        );
+
+        // 每20ms触发一次重绘以驱动打字机动画
+        std::atomic<bool> refresh_running{true};
+        std::thread refresh_thread([&] {
+            while (refresh_running) {
+                screen.PostEvent(Event::Custom);
+                std::this_thread::sleep_for(std::chrono::milliseconds(20));
+            }
+        });
+
+        // 在循环开始前，添加第一条引导消息
         dialog_->addMessage(_00000001.who, _00000001.content);
 
-        // 3. 定义输入组件和它的“完成”事件
-        InputOption option;
-        option.on_enter = [&] {
-            // 当用户按下回车时，设置玩家名字
-            player->setName(trim(input_name));
-            screen.Exit();
-        };
-        auto input_command = Input(&input_name, "请在这里输入你的名字...", option);
+        // 启动屏幕循环，程序会在这里等待用户输入
+        screen.Loop(layout_component);
 
-        // 4. 创建对话历史的渲染器 (Renderer)
-        auto main_view_renderer = Renderer([&] {
-            // 从 dialog_ 获取对话历史记录
-            const auto& messages = dialog_->getHistory();
-            Elements message_elements;
-            for (const auto& msg : messages) {
-                auto who_color = (msg.who == "主角") ? Color::Green : Color::Cyan;
-                message_elements.push_back(
-                    hbox({
-                        text(msg.who) | bold | color(who_color),
-                        text(": "),
-                        text(msg.content)
-                    })
-                );
-            }
+        refresh_running = false;
+        if (refresh_thread.joinable()) refresh_thread.join();
 
-            if (!message_elements.empty()) {
-                message_elements.back() |= focus;
-            }
-
-            return window(text(" 对话记录 "), vbox(message_elements) | flex) | flex;
-        });
-
-        // 5. 将对话历史的渲染器包装，使其可以被放入容器中
-        // 这部分也与 showGameScreen 相同
-        auto interactive_main_view = CatchEvent(main_view_renderer, [](Event) { return false; });
-
-        // 6. 将界面上的可交互组件（这里只有主视窗和输入框）放入一个容器中
-        auto main_container = Container::Vertical({
-            interactive_main_view,
-            input_command,
-        });
-
-        auto final_renderer = Renderer(main_container, [&] {
-            // -- 顶部 Header --
-            // 保持和主界面一致的风格
-            auto header = hbox({
-                text("   拳王之路   ") | bold | color(Color::Red),
-                filler(),
-                text("当前位置: ?????? ") | color(Color::Yellow),
-            }) | border;
-
-            auto main_content = hbox({
-                interactive_main_view->Render() | vscroll_indicator | yframe | flex,
-            });
-
-            auto footer = window(text(" 输入 "), input_command->Render());
-
-            return vbox({
-                header,
-                main_content | flex,
-                footer,
-            });
-        });
-
-        // 程序会在这里显示UI并“暂停”，等待用户输入名字并按回车
-        screen.Loop(final_renderer);
-
-        // 9. 添加游戏正式开始的对话
-        dialog_->addMessage(_00000002.who, player->getName() + _00000002.content);
+        // 4. 返回玩家的名字，此时所有UI和对话逻辑都已完成
+        return player->getName();
     }
 };
 

@@ -2,13 +2,15 @@
 
 #include <string>
 #include <vector>
+#include <chrono>
 
 class Game;
 
 // 用于存储单条对话消息的结构体
 struct DialogMessage {
     std::string who;
-    std::string content;
+    std::string content; // 完整内容
+    std::chrono::steady_clock::time_point start_time; // 开始显示时间
 };
 
 class Dialog {

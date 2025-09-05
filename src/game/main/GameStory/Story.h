@@ -8,7 +8,7 @@ struct DialogNode;
 // 选项结构体
 struct Choice {
     std::string text;                          // 选项显示的文本，例如 "好的，教练"
-    DialogNode& nextNodeID;               // 点击后跳转到的下一个对话节点的ID
+    DialogNode& nextNodeID;                    // 点击后跳转到的下一个对话节点的ID
     unsigned int questID = 0;                  // (可选) 点击后触发的 quest ID
     unsigned int questStage = 0;               // (可选) 将 quest 设置到哪个阶段
 };
@@ -22,11 +22,11 @@ struct DialogNode {
         id(id), who(who), content(content), choices(choices), nextDialogNode(next) {
     };
 
-    unsigned int id;                       // 独一无二的节点ID
+    unsigned int id;                             // 独一无二的节点ID
     const std::string who;                       // 说话者的名字 (e.g., "教练", "系统", "你")
     const std::string content;                   // 对话内容
     const std::vector<Choice> choices;           // 玩家可以做出的选项 (如果没有选项，则为线性对话)
-    const DialogNode *nextDialogNode;  // 下一个对话
+    const DialogNode *nextDialogNode;            // 下一个对话
 };
 
 // 任务状态枚举

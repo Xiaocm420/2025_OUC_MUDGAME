@@ -2,10 +2,13 @@
 #include "Game.h"
 #include "InputProcess.h"
 
+#include <thread>
+#include <chrono>
+
 Dialog::Dialog(Game& game_logic) : game_logic_(game_logic) {}
 
 void Dialog::addMessage(const std::string& who, const std::string& content) {
-    history_.push_back({who, content});
+    history_.push_back({who, content, std::chrono::steady_clock::now()});
 
     // 如果历史记录过长，则移除最旧的一条
     if (history_.size() > MAX_HISTORY_SIZE) {
