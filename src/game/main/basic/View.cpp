@@ -248,6 +248,8 @@ ftxui::Component View::makeGameLayout(
     });
 
     static int scroll_index = 0;
+    // 用于跟踪当前应该显示的消息索引
+    static size_t current_message_index = 0;
 
     auto mainViewRenderer = Renderer([&, isVoiceOver] {
         // 代码"市中心" :(
@@ -255,6 +257,27 @@ ftxui::Component View::makeGameLayout(
         Elements messageElements;
         size_t total = messages.size();
         size_t end = total > static_cast<size_t>(scroll_index) ? total - scroll_index : 0;
+
+        // 更新当前可显示的消息索引
+        if (!messages.empty() && current_message_index < messages.size()) {
+            const auto& current_msg = messages[current_message_index];
+            auto now = std::chrono::steady_clock::now();
+            auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - current_msg.start_time).count();
+            size_t contentSize = Utf8ToGlyphs(current_msg.content).size();
+            size_t shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20));
+
+            // 如果当前消息已经完全显示，且有下一条消息，则更新索引
+            if (shownChars >= contentSize && current_message_index < messages.size() - 1) {
+                // 轻微延迟后再显示下一条消息
+                if (elapsedMs > contentSize * 20 + 500) { // 500ms延迟
+                    current_message_index++;
+                }
+            }
+        } else if (!messages.empty()) {
+            current_message_index = messages.size() - 1;
+        } else {
+            current_message_index = 0;
+        }
 
         for (size_t i = 0; i < end; ++i) {
            const auto& msg = messages[i];
@@ -264,10 +287,21 @@ ftxui::Component View::makeGameLayout(
            size_t shownChars = contentSize;
            auto now = std::chrono::steady_clock::now();
            auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - msg.start_time).count();
-           shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20)); // 出字速度 20ms/字
+
+           // 如果是当前消息或之前的消息，完全显示
+           if (i < current_message_index) {
+               shownChars = contentSize;
+           } else if (i == current_message_index) {
+               // 当前消息按时间进度显示
+               shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20)); // 出字速度 20ms/字
+           } else {
+               // 未来的消息不显示
+               shownChars = 0;
+           }
+
            std::string shownContent;
            for (size_t j = 0; j < shownChars && j < glyphs.size(); ++j) shownContent += glyphs[j];
-           bool typing = shownChars < contentSize;
+           bool typing = (i == current_message_index) && (shownChars < contentSize);
            if (typing) shownContent += "_";
            messageElements.push_back(hbox({
                text(msg.who) | bold | color(whoColor),

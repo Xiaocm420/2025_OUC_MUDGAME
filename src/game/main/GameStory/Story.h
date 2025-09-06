@@ -7,10 +7,14 @@ struct DialogNode;
 
 // 选项结构体
 struct Choice {
-    std::string text;                          // 选项显示的文本，例如 "好的，教练"
-    DialogNode& nextNodeID;                    // 点击后跳转到的下一个对话节点的ID
-    unsigned int questID = 0;                  // (可选) 点击后触发的 quest ID
-    unsigned int questStage = 0;               // (可选) 将 quest 设置到哪个阶段
+    Choice(const std::string text, const unsigned int nextNodeID, const unsigned int questID=0,
+        const unsigned int questStage=0) :
+    text(text), nextNodeID(nextNodeID), questID(questID), questStage(questStage) {}
+
+    std::string text;                          // 选项显示的文本，例如 [是] [否]
+    unsigned int nextNodeID;                   // 点击后跳转到的下一个对话节点的ID
+    unsigned int questID;                  // (可选) 点击后触发的 quest ID
+    unsigned int questStage;               // (可选) 将 quest 设置到哪个阶段
 };
 
 // 对话结构体

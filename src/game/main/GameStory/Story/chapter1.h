@@ -12,6 +12,12 @@
 
 inline DialogNode _00000001(00000001, UNKNOWN, "欢迎！这是你第一次进入这个游戏，来给你自己起个名字吧:");
 
-inline DialogNode _00000002(00000002, UNKNOWN, " 吗？嗯嗯，确实是个好名字呢，祝你玩的开心");
+inline DialogNode _00000002(00000002, UNKNOWN, " 吗？嗯嗯，确实是个好名字呢，准备好醒来了吗？");
+
+inline DialogNode _00000003(00000003, SYSTEM, "说：\"是\" 或 \"否\"");
+
+inline Choice _000000020("是", 0);
+
+inline Choice _000000021("否", 0);
 
 

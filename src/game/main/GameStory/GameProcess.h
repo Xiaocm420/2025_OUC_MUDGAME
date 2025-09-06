@@ -49,12 +49,44 @@ public:
                 }
 
                 dialog_->addMessage(_00000002.who, name + _00000002.content);
+                // 添加DialogNode _00000003到_00000002后
+                dialog_->addMessage(_00000003.who, _00000003.content);
 
                 // 名字有效，给名字赋值
                 player->setName(name);
 
-                // 任务完成，退出当前屏幕循环
-                screen.Exit();
+                // 等待用户输入，处理选择
+                std::string choice_input;
+                auto choiceComponent = Input(&choice_input, "输入 '是' 或 '否'", {
+                    .on_enter = [&] {
+                        choice_input = trim(choice_input);
+                        if (choice_input == _000000020.text) {
+                            // 用户选择了Choice _000000020（是）
+                            dialog_->clearHistory(); // 清除history_
+                            screen.Exit();
+                            view->showGameScreen(); // 正式进入游戏主界面
+                        } else {
+                            // 用户选择了其他选项，跳出startNewGame()并退回到主菜单
+                            dialog_->clearHistory();
+                            screen.Exit();
+                            view->showMainMenu();
+                        }
+                    },
+                });
+
+                // 替换为选择组件
+                auto choice_layout = view->makeGameLayout(
+                    false, 
+                    false, 
+                    true, 
+                    false, 
+                    "???", 
+                    "", 
+                    "", 
+                    choiceComponent
+                );
+
+                screen.Loop(choice_layout);
             },
         });
 

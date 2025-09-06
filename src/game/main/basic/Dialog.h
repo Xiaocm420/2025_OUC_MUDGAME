@@ -27,6 +27,11 @@ public:
     // 获取对话历史记录，用于渲染
     [[nodiscard]] const std::vector<DialogMessage>& getHistory() const;
 
+    // 清除对话历史记录
+    void clearHistory() {
+        history_.clear();
+    }
+
 protected:
     Game& game_logic_;
 
