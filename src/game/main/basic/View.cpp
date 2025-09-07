@@ -340,7 +340,7 @@ ftxui::Component View::makeGameLayout(
 
 
     // 渲染器
-    return Renderer(mainContainer, [=] {
+    return Renderer(mainContainer, [=, this] {
         // Header
         auto header = hbox({
             text("   拳王之路   ") | bold | color(Color::Red),
