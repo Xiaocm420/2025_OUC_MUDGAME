@@ -2,10 +2,13 @@
 #define PLAYER_H
 
 #include <iostream>
+#include "../../basic/Game.h"
+
+class Game;
 
 class Player {
 public:
-    Player();
+    explicit Player(Game& game_logic);
     ~Player();
 
     const std::string& getName();
@@ -35,8 +38,11 @@ public:
     void addFatigue(double value);                      // 疲劳值
     void addSavings(double value);                      // 积蓄
 
+protected:
+    Game& game_logic_;
+
 private:
-    std::string name;
+    std::string name;       // 玩家名
 
     // 核心属性
     double healthiness;     // 健康度
