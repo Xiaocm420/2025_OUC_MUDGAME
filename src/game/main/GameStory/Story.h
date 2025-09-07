@@ -1,36 +1,56 @@
 #pragma once
 
+#include "../basic/Types.h"
 #include <string>
+#include <utility>
 #include <vector>
 
-struct DialogNode;
-
-// 选项结构体
+/**
+ * @struct Choice
+ * @brief 代表玩家在对话中可以做出的一个选项。
+ */
 struct Choice {
-    Choice(const std::string text, const unsigned int nextNodeID, const unsigned int questID=0,
-        const unsigned int questStage=0) :
-    text(text), nextNodeID(nextNodeID), questID(questID), questStage(questStage) {}
+    /**
+     * @brief Choice的构造函数。
+     * @param text 选项显示的文本。
+     * @param nextNodeID 选择后将跳转到的下一个DialogNode的ID。
+     * @param action (可选) 选择该选项后要执行的特定动作。
+     */
+    Choice(const std::string text, unsigned int nextNodeID, ChoiceAction action = nullptr)
+        : text(std::move(text)), nextNodeID(nextNodeID), action(std::move(action)) {}
 
-    std::string text;                          // 选项显示的文本，例如 [是] [否]
-    unsigned int nextNodeID;                   // 点击后跳转到的下一个对话节点的ID
-    unsigned int questID;                  // (可选) 点击后触发的 quest ID
-    unsigned int questStage;               // (可选) 将 quest 设置到哪个阶段
+    std::string text;           ///< 选项的显示文本。
+    unsigned int nextNodeID;    ///< 下一个对话节点的ID。
+    ChoiceAction action;        ///< 选择后执行的动作。
 };
 
-// 对话结构体
+
+/**
+ * @struct DialogNode
+ * @brief 代表游戏中的一个原子对话单元。
+ */
 struct DialogNode {
     DialogNode() = default;
 
-    DialogNode(const unsigned int id = 0, const std::string& who = "", const char* content = "",
-        const std::vector<Choice>& choices={}, const DialogNode *next=nullptr) :
-        id(id), who(who), content(content), choices(choices), nextDialogNode(next) {
-    };
+    /**
+     * @brief DialogNode的构造函数。
+     * @param id 节点的唯一ID。
+     * @param who 说话者的名字。
+     * @param content 对话的完整内容。
+     * @param choices (可选) 玩家可以在此节点做出的选项列表。
+     * @param nextNodeID (可选) 如果没有选项，则自动跳转到此ID的节点。
+     * @param action (可选) 在显示完此节点内容且无选项时执行的动作。
+     */
+    DialogNode(const unsigned int id, const std::string& who, const std::string& content,
+        const std::vector<Choice>& choices = {}, const unsigned int nextNodeID = 0, ChoiceAction action = nullptr)
+        : id(id), who(who), content(content), choices(choices), nextNodeID(nextNodeID), action(std::move(action)) {}
 
-    unsigned int id;                             // 独一无二的节点ID
-    const std::string who;                       // 说话者的名字 (e.g., "教练", "系统", "你")
-    const std::string content;                   // 对话内容
-    const std::vector<Choice> choices;           // 玩家可以做出的选项 (如果没有选项，则为线性对话)
-    const DialogNode *nextDialogNode;            // 下一个对话
+    unsigned int id;                  ///< 节点的唯一ID。
+    const std::string who;            ///< 说话者。
+    const std::string content;        ///< 对话内容。
+    const std::vector<Choice> choices;///< 选项列表。
+    const unsigned int nextNodeID;    ///< 线性剧情的下一个节点ID
+    const ChoiceAction action;        ///< 节点自身的动作。
 };
 
 // 任务状态枚举

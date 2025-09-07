@@ -37,5 +37,5 @@ protected:
 
 private:
     std::vector<DialogMessage> history_;
-    static const size_t MAX_HISTORY_SIZE = 256; // 限制历史记录最大长度
+    static constexpr size_t MAX_HISTORY_SIZE = 256; // 限制历史记录最大长度
 };

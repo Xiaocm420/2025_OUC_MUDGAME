@@ -1,9 +1,7 @@
 #include "Dialog.h"
 #include "Game.h"
 #include "InputProcess.h"
-
-#include <thread>
-#include <chrono>
+#include "StoryController.h"
 
 Dialog::Dialog(Game& game_logic) : game_logic_(game_logic) {}
 
@@ -36,8 +34,7 @@ void Dialog::processPlayerInput(std::string& input) {
         }
     } else {
         // 对话，将其添加到历史记录中
-        // TODO: "主角"应该替换为玩家的实际名字
-        addMessage("主角", input);
+        addMessage(game_logic_.getPlayer().getName(), input);
     }
 }
 
