@@ -9,9 +9,9 @@
 #include "../GameStory/GameProcess.h"
 
 Game::Game() : running(false) {
-    view_ = new View(*this);
-    dialog_ = new Dialog(*this);
-    player_ = new Player(*this);
+    view_ = std::make_unique<View>(*this);
+    dialog_ = std::make_unique<Dialog>(*this);
+    player_ = std::make_unique<Player>(*this);
 }
 
 Game::~Game() {
@@ -32,7 +32,7 @@ void Game::startNewGame() const {
     std::cout << "开始新游戏..." << std::endl;
     // TODO
     // ... 此处是开始新游戏的具体逻辑 ...
-    PLAYER = GameProcess::newStart(dialog_, player_, view_);
+    PLAYER = GameProcess::newStart(dialog_.get(), player_.get(), view_.get());
 
     if (view_) {
         view_->showGameScreen();

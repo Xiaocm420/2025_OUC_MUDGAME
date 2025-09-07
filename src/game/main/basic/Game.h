@@ -27,9 +27,9 @@ public:
 private:
     bool running;
 
-    View* view_;
-    Dialog* dialog_;
-    Player* player_;
+    std::unique_ptr<View> view_;
+    std::unique_ptr<Dialog> dialog_;
+    std::unique_ptr<Player> player_;
 };
 
 static std::string SYSTEM = "系统";
