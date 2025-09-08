@@ -14,6 +14,10 @@ public:
     const std::string& getName();
     void setName(const std::string& name);
 
+    // 位置相关
+    const std::string& getLocation() const;
+    void setLocation(const std::string& location);
+
     // 获取核心属性
     [[nodiscard]] double getHealthiness() const;        // 健康度
     [[nodiscard]] double getStrength() const;           // 力量
@@ -43,6 +47,7 @@ protected:
 
 private:
     std::string name;       // 玩家名
+    std::string location;   // 位置
 
     // 核心属性
     double healthiness;     // 健康度

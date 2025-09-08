@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-#define GAMENAME "拳击模拟器"
+#define GAMENAME "拳王之路"
 #define VERSION "1.0.0"
 
 Configuration* Configuration::instance = nullptr;

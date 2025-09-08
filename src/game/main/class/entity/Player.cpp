@@ -1,7 +1,7 @@
 #include "Player.h"
 
 Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(100), strength(1),
-                   stamina(1), agility(1), hunger(100), fatigue(100), money(1000) {
+                   stamina(1), agility(1), hunger(100), fatigue(100), money(1000), location("？？？") {
 }
 
 // TODO: 保存数据
@@ -13,6 +13,14 @@ const std::string &Player::getName() {
 
 void Player::setName(const std::string& name) {
     this->name = name;
+}
+
+const std::string& Player::getLocation() const {
+    return location;
+}
+
+void Player::setLocation(const std::string &location) {
+    this->location = location;
 }
 
 double Player::getHealthiness() const {
