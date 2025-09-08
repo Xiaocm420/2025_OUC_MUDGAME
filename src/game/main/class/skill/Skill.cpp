@@ -148,7 +148,7 @@ void Skill::execute(Player& user, Player& target) {
     
     // 消耗疲劳值（先计算出SPCost, 再算出fatigueCost）
     double staminaCost = calculateStaminaCost(user.getStrength());    // 体力消耗
-    double fatigueCost = SPCost / user.getEnergy(); // 疲劳值消耗 = 体力消耗 / 体力槽
+    double fatigueCost = staminaCost / user.getEnergy(); // 疲劳值消耗 = 体力消耗 / 体力槽
     user.addFatigue(-fatigueCost);  // 原Player类只给出了add的端口，add一个负数来实现疲劳值减少
     
     switch (effectType) {
@@ -161,7 +161,7 @@ void Skill::execute(Player& user, Player& target) {
             srand((unsigned)time(NULL));
             double roll = (double)rand() / RAND_MAX; // 生成0到1之间的随机数
             if(roll <= hitRate) {
-                target.addHealth(-healthiness); // 造成伤害
+                target.addHealthiness(-healthiness); // 造成伤害
             }
             else{
                 // 未命中, 无效果
@@ -259,11 +259,7 @@ void Skill::deserialize(const std::string& data) {
 }
 */
 
-// ========== 所有技能初始化实例 ==========
-std::vector<Skill*> createAllSkills() {
-    std::vector<Skill*> skills;
-    
-    // ========== 所有技能初始化实例 ==========
+
 std::vector<Skill*> createAllSkills() {
     std::vector<Skill*> skills;
     

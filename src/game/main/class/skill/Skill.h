@@ -52,62 +52,73 @@ private:
 public:
     // 构造函数 - 基础攻击技能
     Skill(const std::string& name, const std::string& desc, 
-          int baseDmg, float dmgCoeff, 
-          int baseHit, float hitCoeff, 
-          int baseStamina, float staminaCoeff);
+          double baseDmg, double dmgCoeff, 
+          double baseHit, double hitCoeff, 
+          double baseStamina, double staminaCoeff,
+          int cost);
     
     // 构造函数 - 属性增益技能
     Skill(const std::string& name, const std::string& desc,
-          int minValue, const std::string& attrType);
+          double minValue, const std::string& attrType,
+          int cost);
     
-    // 构造函数 - 训练效率技能  
+    // 构造函数 - 训练效率技能
     Skill(const std::string& name, const std::string& desc,
-          float multiplier, const std::string& attrType);
+          double multiplier, const std::string& attrType,
+          int cost);
     
     // 构造函数 - 特殊效果技能
     Skill(const std::string& name, const std::string& desc,
-          SkillEffectType type, float value);
+          SkillEffectType type, double value,
+          int cost);
     
     // 构造函数 - 自定义效果技能
     Skill(const std::string& name, const std::string& desc,
-          std::function<void(Player&, Player&)> effect);
+          std::function<void(Player&, Player&)> effect,
+          int cost);
 
     // 获取技能基本信息
     std::string getSkillName() const;           // 获取技能名称
     std::string getDescription() const;         // 获取技能描述
     SkillEffectType getEffectType() const;      // 获取技能效果类型
+    int getUnlockCost() const;                  // 获取解锁所需技能点数
+    bool getIsLocked() const;                   // 获取是否锁定状态
     
     // 攻击相关属性获取
-    int getBaseDamage() const;                  // 获取基础伤害值
-    float getDamageCoefficient() const;         // 获取伤害系数
-    int getBaseHitRate() const;                 // 获取基础命中率
-    float getHitRateCoefficient() const;        // 获取命中率系数
-    int getBaseStaminaCost() const;             // 获取基础体力消耗
-    float getStaminaCostCoefficient() const;    // 获取体力消耗系数
+    double getBaseDamage() const;               // 获取基础伤害值
+    double getDamageCoefficient() const;        // 获取伤害系数
+    double getBaseHitRate() const;              // 获取基础命中率
+    double getHitRateCoefficient() const;       // 获取命中率系数
+    double getBaseStaminaCost() const;          // 获取基础体力消耗
+    double getStaminaCostCoefficient() const;   // 获取体力消耗系数
     
-
-    // 获取最低属性值有问题，应该设置为属性最低值为多少
-    int setMinAttributeValue(Player& user);     // 设置玩家最低属性值( 初始三个属性都默认为0 )
-    std::string getAttributeType() const;       // 获取要设置的最低值的属性类型（力量，敏捷，耐力）
+    // 属性增益相关获取
+    double getMinAttributeValue() const;        // 获取最低属性值
+    std::string getAttributeType() const;       // 获取属性类型
     
     // 训练效率相关获取
-    float getTrainingMultiplier() const;        // 获取训练效率倍率
+    double getTrainingMultiplier() const;       // 获取训练效率倍率
     
     // 特殊效果相关获取
-    float getEffectValue() const;               // 获取效果数值
+    double getEffectValue() const;              // 获取效果数值
 
     // 技能效果计算方法
-    int calculateDamage(int playerStrength) const;                          // 计算伤害值
-    float calculateHitRate(int playerAgility, int playerStrength, int playerStamina) const;  // 计算命中率
-    int calculateStaminaCost(int playerStrength) const;                     // 计算体力消耗
+    double calculateDamage(double playerStrength) const;                          // 计算伤害值
+    double calculateHitRate(double playerAgility, double playerStrength, double playerStamina) const;  // 计算命中率
+    double calculateStaminaCost(double playerStrength) const;                     // 计算体力消耗
+    
+    // 解锁相关方法
+    void unlock();                             // 解锁技能
+    void lock();                               // 锁定技能
+    bool canUnlock(int playerSkillPoints) const; // 检查是否可以解锁
     
     // 使用条件检查
-    bool canUse(const bool isLocked) const;                                  // 检查是否可以使用技能
+    bool canUse(const Player& user) const;     // 检查是否可以使用技能
     
     // 执行技能
-    void execute(Player& user, Player& target);                             // 执行技能效果
+    void execute(Player& user, Player& target); // 执行技能效果
     
-    // 技能类型判断（ 简单分为四种技能 ）
+    // 技能类型判断
     bool isAttackSkill() const;              // 是否是攻击技能
     bool isAttributeBoostSkill() const;      // 是否是属性增益技能
     bool isTrainingSkill() const;            // 是否是训练效率技能
