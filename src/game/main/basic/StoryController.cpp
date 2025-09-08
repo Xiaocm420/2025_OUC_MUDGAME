@@ -1,8 +1,8 @@
-#include "StoryController.h"
-#include "Game.h"
 #include "Dialog.h"
-#include "../GameStory/Story.h"
+#include "Game.h"
+#include "StoryController.h"
 #include "../GameStory/DialogRegistry.h"
+#include "../GameStory/Story.h"
 #include <string>
 
 StoryController::StoryController(Game& game) : game_(game) {

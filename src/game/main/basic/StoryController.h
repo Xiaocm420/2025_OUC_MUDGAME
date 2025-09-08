@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STORYCONTROLLER_H
+#define STORYCONTROLLER_H
 
 #include "Types.h"
 #include <map>
@@ -47,3 +48,5 @@ private:
     Game& game_; ///< 对Game核心对象的引用。
     std::map<unsigned int, const DialogNode*> dialog_database_; ///< 存储所有对话节点的数据库。
 };
+
+#endif // STORYCONTROLLER_H

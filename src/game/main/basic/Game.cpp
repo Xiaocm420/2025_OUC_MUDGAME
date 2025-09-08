@@ -1,7 +1,7 @@
-#include "Game.h"
-#include "View.h"
 #include "Dialog.h"
+#include "Game.h"
 #include "StoryController.h"
+#include "View.h"
 #include "../class/entity/Player.h"
 #include "../GameStory/GameProcess.h"
 

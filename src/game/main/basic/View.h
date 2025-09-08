@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GAME_VIEW_H
+#define GAME_VIEW_H
 
 #include <string>
 
@@ -32,3 +33,5 @@ private:
     // 保存 Game 对象的引用，以便在按钮点击时调用其方法
     Game& game_logic_;
 };
+
+#endif // GAME_VIEW_H

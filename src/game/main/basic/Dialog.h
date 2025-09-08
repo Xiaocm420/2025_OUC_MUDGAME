@@ -1,8 +1,9 @@
-#pragma once
+#ifndef DIALOG_H
+#define DIALOG_G
 
+#include <chrono>
 #include <string>
 #include <vector>
-#include <chrono>
 
 class Game;
 
@@ -39,3 +40,5 @@ private:
     std::vector<DialogMessage> history_;
     static constexpr size_t MAX_HISTORY_SIZE = 256; // 限制历史记录最大长度
 };
+
+#endif // DIALOG_G

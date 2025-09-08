@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GAME_H
+#define GAME_H
 
 #include "Types.h"
 #include "../class/entity/Player.h"
@@ -104,3 +105,5 @@ inline static std::string PLAYER; // 比较方便，以后可能有改名卡道�
 
 inline static const std::string VOICEOVER; // 旁白
 inline static const std::string UNKNOWN = "？？？";
+
+#endif // GAME_H

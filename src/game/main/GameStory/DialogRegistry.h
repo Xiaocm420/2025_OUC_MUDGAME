@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DIALOG_REGISTRY_H
+#define DIALOG_REGISTRY_H
 
 #include <functional>
 #include <map>
@@ -58,3 +59,5 @@ struct DialogRegistrar {
         DialogRegistry::add(std::move(func));
     }
 };
+
+#endif // DIALOG_REGISTRY_H

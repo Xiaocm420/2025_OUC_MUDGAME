@@ -1,6 +1,8 @@
-#pragma once
-#include "../Story.h"
+#ifndef CHAPTER1_H
+#define CHAPTER1_H
+
 #include "../DialogRegistry.h"
+#include "../Story.h"
 #include "../../basic/Game.h"
 
 #include <string>
@@ -58,4 +60,4 @@ namespace Chapter1 {
 
 } // namespace Chapter1
 
-
+#endif // CHAPTER1_H

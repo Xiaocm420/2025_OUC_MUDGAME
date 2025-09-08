@@ -1,5 +1,5 @@
-#ifndef INC_2025_OUC_MUDGAME_INPUTPROCESS_H
-#define INC_2025_OUC_MUDGAME_INPUTPROCESS_H
+#ifndef INPUTPROCESS_H
+#define INPUTPROCESS_H
 #include <string>
 #include <algorithm>
 
@@ -36,4 +36,4 @@ inline int getLength(std::string s) {
     return count;
 }
 
-#endif //INC_2025_OUC_MUDGAME_INPUTPROCESS_H
+#endif // INPUTPROCESS_H

@@ -1,8 +1,7 @@
-#ifndef INC_2025_OUC_MUDGAME_ABSTRACTNPC_H
-#define INC_2025_OUC_MUDGAME_ABSTRACTNPC_H
+#ifndef ABSTRACTNPC_H
+#define ABSTRACTNPC_H
 
 #include <string>
-
 
 class NPC {
 public:
@@ -17,5 +16,4 @@ private:
 
 };
 
-
-#endif //INC_2025_OUC_MUDGAME_ABSTRACTNPC_H
+#endif // ABSTRACTNPC_H

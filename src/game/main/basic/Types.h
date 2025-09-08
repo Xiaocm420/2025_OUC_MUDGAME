@@ -1,4 +1,5 @@
-#pragma once
+#ifndef GAME_TYPES_H
+#define GAME_TYPES_H
 
 #include <functional>
 #include <string>
@@ -45,3 +46,5 @@ struct InputRule {
     RuleCondition condition; ///< 规则的匹配条件。
     RuleAction action;       ///< 条件满足时执行的动作。
 };
+
+#endif // GAME_TYPES_H

@@ -1,6 +1,6 @@
-#include "View.h"
-#include "Game.h"
 #include "Dialog.h"
+#include "Game.h"
+#include "View.h"
 #include "ui/GameLayout.h"
 #include "../class/entity/Player.h"
 
@@ -9,11 +9,11 @@
 #include "FTXUI/dom/elements.hpp"
 #include "FTXUI/screen/string.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <random>
 #include <thread>
 #include <vector>
-#include <atomic>
 
 View::View(Game& game_logic) : game_logic_(game_logic) {}
 

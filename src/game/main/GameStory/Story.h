@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STORY_H
+#define STORY_H
 
 #include "../basic/Types.h"
 #include <string>
@@ -77,3 +78,5 @@ struct Scene {
     std::string description;              // 进入场景时的环境描述
     unsigned int entryDialogNodeID = 0;   // 进入场景时自动触发的对话节点ID
 };
+
+#endif // STORY_H

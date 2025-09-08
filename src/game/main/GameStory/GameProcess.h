@@ -1,5 +1,5 @@
-#ifndef INC_2025_OUC_MUDGAME_GAMEPROCESS_H
-#define INC_2025_OUC_MUDGAME_GAMEPROCESS_H
+#ifndef GAMEPROCESS_H
+#define GAMEPROCESS_H
 
 #include "../basic/Game.h"
 #include "../basic/InputProcess.h"
@@ -59,4 +59,4 @@ public:
     }
 };
 
-#endif //INC_2025_OUC_MUDGAME_GAMEPROCESS_H
+#endif // GAMEPROCESS_H
