@@ -41,3 +41,16 @@ void Dialog::processPlayerInput(std::string& input) {
 const std::vector<DialogMessage>& Dialog::getHistory() const {
     return history_;
 }
+
+void Dialog::clearHistory() {
+    history_.clear();
+    history_was_cleared_ = true; // to be checked in GameLayout.cpp
+}
+
+bool Dialog::historyWasClearedAndConsume() {
+    if (history_was_cleared_) {
+        history_was_cleared_ = false;
+        return true;
+    }
+    return false;
+}

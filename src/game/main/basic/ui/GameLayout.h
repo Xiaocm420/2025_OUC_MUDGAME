@@ -4,6 +4,8 @@
 #include "../Types.h"
 #include "FTXUI/component/component_base.hpp"
 #include "FTXUI/component/component.hpp"
+
+#include <chrono>
 #include <string>
 
 class Game;
@@ -31,11 +33,12 @@ private:
     Game& game_logic_; ///< 对Game核心对象的引用。
 
     // --- UI状态和数据成员 ---
-    std::string command_input_str_;     ///< 存储默认指令输入框的文本。
-    std::string text_input_str_;        ///< 存储通用文本输入框的文本。
-    int selected_input_mode_ = 0;       ///< 控制输入区域Tab的当前激活项 (0: InGame, 1: TextInput, 2: Choice)。
-    int scroll_index_ = 0;              ///< 对话历史的滚动偏移量。
-    size_t current_message_index_ = 0;  ///< 用于打字机效果的当前消息索引。
+    std::string command_input_str_;                                 ///< 存储默认指令输入框的文本。
+    std::string text_input_str_;                                    ///< 存储通用文本输入框的文本。
+    int selected_input_mode_ = 0;                                   ///< 控制输入区域Tab的当前激活项 (0: InGame, 1: TextInput, 2: Choice)。
+    int scroll_index_ = 0;                                          ///< 对话历史的滚动偏移量。
+    size_t current_message_index_ = 0;                              ///< 用于打字机效果的当前消息索引。
+    std::chrono::steady_clock::time_point animation_start_time_;    ///< 用于打字机效果的动画开始时间。
 
     // --- 子组件成员 ---
     ftxui::Component interactiveMainView_;      ///< 可交互的对话历史显示区。

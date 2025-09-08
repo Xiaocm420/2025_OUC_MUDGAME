@@ -23,26 +23,33 @@ namespace Chapter1 {
     
     inline DialogNode _00000002(00000002, UNKNOWN, "<PLAYER_NAME>吗？嗯嗯，确实是个好名字呢，准备好醒来了吗？", {} , 3);
     
-    inline const DialogNode _00000003(3, SYSTEM, "说：\"是\" 或 \"否\"", {
+    inline const DialogNode _00000003(3, SYSTEM, "说：「是」或「否」\n（选择否将退出游戏！）", {
         Choice("是", 4), // 选择“是”，跳转到节点4
         Choice("否", 5), // 选择“否”，跳转到节点5
     });
     
-    inline const DialogNode _00000004(4, SYSTEM, "游戏正式开始！", {}, 0, 
-        // 附加动作：清理对话历史并显示欢迎消息
-        [](Game& game){
+    inline const DialogNode _00000004(4, SYSTEM, "游戏正式开始！", {}, 6, 
+        // 附加动作：清理对话历史
+        [](Game& game) {
             game.getDialog().clearHistory();
-            game.getDialog().addMessage("系统", "欢迎来到拳王之路！");
         }
     );
 
-    inline const DialogNode _00000005(5, SYSTEM, "下次再见。", {} , 0,
-        [](Game& game){
+    inline const DialogNode _00000005(5, SYSTEM, "下次再见。", {}, 0,
+        [](Game& game) {
             game.getDialog().clearHistory();
             game.exitGame();
         }
     );
     
+    inline DialogNode _00000006(6, UNKNOWN, "快醒醒！<PLAYER_NAME>！", {}, 0,
+        [](Game& game) {
+            game.getDialog().addMessage(PLAYER, "我这是……在哪？");
+            game.getDialog().addMessage("系统", "Hello world!");
+            game.getDialog().addMessage("系统", "Hello world!");
+        }
+    );
+
     /**
      * @brief 将本章节的所有对话节点注册到数据库中。
      * @param db 对话数据库的引用。
@@ -53,6 +60,7 @@ namespace Chapter1 {
         db[3] = &_00000003;
         db[4] = &_00000004;
         db[5] = &_00000005;
+        db[6] = &_00000006;
     }
 
     /// @brief 创建一个静态的注册器实例，以实现自动注册。

@@ -7,66 +7,105 @@
 #include "FTXUI/dom/elements.hpp"
 #include "FTXUI/screen/string.hpp"
 
-#include <chrono>
-
 using namespace ftxui;
 
-GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic) {
-    // --- 1. 在构造函数中初始化所有成员组件 ---
+/**
+ * @brief GameLayout的构造函数。
+ * @details 在此初始化所有UI组件，并设置它们的交互逻辑。
+ *          关键在于，所有组件都作为成员变量，保证了其生命周期与GameLayout实例一致。
+ */
+GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic), 
+                                           animation_start_time_(std::chrono::steady_clock::now()) {
 
     // -- 对话历史渲染器 --
     auto mainViewRenderer = Renderer([this] {
         const auto& messages = game_logic_.getDialog().getHistory();
-        Elements messageElements;
-        size_t total = messages.size();
-        size_t end = total > static_cast<size_t>(scroll_index_) ? total - scroll_index_ : 0;
 
+        // -- 动画状态重置逻辑 --
+        // 检查数据源是否已被重置，如果是，则同步UI的动画状态。
+        if (game_logic_.getDialog().historyWasClearedAndConsume()) {
+            if (!messages.empty()) {
+                // 如果历史记录被清空后又有了新内容，则从头开始播放动画。
+                current_message_index_ = 0;
+                animation_start_time_ = std::chrono::steady_clock::now();
+            } else {
+                // 如果历史记录被清空后是空的，则只重置索引。
+                current_message_index_ = 0;
+            }
+        }
+
+        // -- 动画状态推进逻辑 --
+        // 只有当有消息且当前动画索引有效时才进行判断
         if (!messages.empty() && current_message_index_ < messages.size()) {
             const auto& current_msg = messages[current_message_index_];
-            auto now = std::chrono::steady_clock::now();
-            auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - current_msg.start_time).count();
-            size_t contentSize = Utf8ToGlyphs(current_msg.content).size();
-            size_t shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20));
+            auto content_size = Utf8ToGlyphs(current_msg.content).size();
+            
+            // 计算完成当前消息动画所需的总时间（打字时间 + 结束后延迟）
+            auto typing_duration = std::chrono::milliseconds(content_size * 20);
+            auto post_delay = std::chrono::milliseconds(500);
+            auto total_animation_time = typing_duration + post_delay;
 
-            if (shownChars >= contentSize && current_message_index_ < messages.size() - 1) {
-                if (elapsedMs > contentSize * 20 + 500) {
+            // 检查自当前动画开始以来，是否已经过了所需的总时间
+            if (std::chrono::steady_clock::now() - animation_start_time_ > total_animation_time) {
+                // 如果动画已结束，并且后面还有更多消息，则准备播放下一条
+                if (current_message_index_ < messages.size() - 1) {
                     current_message_index_++;
+                    // 为下一条消息的动画重置计时器
+                    animation_start_time_ = std::chrono::steady_clock::now();
                 }
             }
         } else if (!messages.empty()) {
+            // 如果消息列表不为空，但索引越界，则修正索引到最后一条消息
             current_message_index_ = messages.size() - 1;
-        } else {
-            current_message_index_ = 0;
         }
 
+        // -- 渲染逻辑 --
+        Elements messageElements;
+        size_t total = messages.size();
+        size_t end = total > static_cast<size_t>(scroll_index_) ? total - scroll_index_ : 0;
+        
         for (size_t i = 0; i < end; ++i) {
-           const auto& msg = messages[i];
-           auto whoColor = (msg.who == game_logic_.getPlayer().getName()) ? Color::Green : Color::Cyan;
-           auto glyphs = Utf8ToGlyphs(msg.content);
-           size_t contentSize = glyphs.size();
-           size_t shownChars = contentSize;
+            // 只处理和渲染那些已经播放完毕或正在播放的消息。
+            // 完全跳过未来的消息，避免它们的 "who" 提前显示。
+            if (i > current_message_index_) {
+                continue; // 跳过此循环的剩余部分
+            }
 
-           if (i < current_message_index_) {
-               shownChars = contentSize;
-           } else if (i == current_message_index_) {
-               shownChars = std::min(contentSize, static_cast<size_t>(
-                   std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - msg.start_time).count() / 20));
-           } else {
-               shownChars = 0;
-           }
+            const auto& msg = messages[i];
+            auto whoColor = (msg.who == game_logic_.getPlayer().getName()) ? Color::Green : Color::Cyan;
+            auto glyphs = Utf8ToGlyphs(msg.content);
+            size_t contentSize = glyphs.size();
+            size_t shownChars = 0;
 
-           std::string shownContent;
-           for (size_t j = 0; j < shownChars && j < glyphs.size(); ++j) shownContent += glyphs[j];
-           if ((i == current_message_index_) && (shownChars < contentSize)) {
-              shownContent += "_";
-           }
-           messageElements.push_back(hbox({
-               text(msg.who) | bold | color(whoColor),
-               text(": "),
-               paragraph(shownContent) | flex
-           }));
+            if (i < current_message_index_) {
+                // 已播放完毕的消息，完整显示
+                shownChars = contentSize;
+            } else { // 循环开头已有 i > current_message_index_ 判断，故此处必为 i == current_message_index_
+                // 正在播放的当前消息，根据独立的动画计时器计算显示长度
+                auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now() - animation_start_time_
+                ).count();
+                shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20));
+            }
+            // (i > current_message_index_) 的未来消息，shownChars 保持为0，不显示
+
+            std::string shownContent;
+            for (size_t j = 0; j < shownChars && j < glyphs.size(); ++j) {
+                shownContent += glyphs[j];
+            }
+            if ((i == current_message_index_) && (shownChars < contentSize)) {
+               shownContent += "_";
+            }
+            messageElements.push_back(hbox({
+                text(msg.who) | bold | color(whoColor),
+                text(": "),
+                paragraph(shownContent) | flex
+            }));
         }
-        if (!messageElements.empty()) messageElements.back() |= focus;
+        if (!messageElements.empty()) {
+            messageElements.back() |= focus;
+        }
+        
         return window(text(" 对话记录 "), vbox(messageElements) | flex | yframe);
     });
 
@@ -147,6 +186,10 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic) {
 }
 
 
+/**
+ * @brief 渲染函数，FTXUI每一帧都会调用。
+ * @details 负责根据当前游戏状态同步UI，并组合所有子组件来构建最终的界面布局。
+ */
 Element GameLayout::Render() {
     // -- 状态同步：根据Game状态切换Tab的显示，并动态更新内容 --
     GameState state = game_logic_.getCurrentState();

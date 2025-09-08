@@ -29,15 +29,19 @@ public:
     [[nodiscard]] const std::vector<DialogMessage>& getHistory() const;
 
     // 清除对话历史记录
-    void clearHistory() {
-        history_.clear();
-    }
+    void clearHistory();
 
-protected:
-    Game& game_logic_;
+    /**
+     * @brief 检查历史记录自上次检查后是否被清除过。
+     * @details 这是一个"读取后即消耗"的标志。调用此函数会返回当前状态并立即重置标志为false。
+     * @return 如果历史记录被清除了，则返回true。
+     */
+    [[nodiscard]] bool historyWasClearedAndConsume();
 
 private:
+    Game& game_logic_;
     std::vector<DialogMessage> history_;
+    mutable bool history_was_cleared_ = false;
     static constexpr size_t MAX_HISTORY_SIZE = 256; // 限制历史记录最大长度
 };
 

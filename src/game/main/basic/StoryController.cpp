@@ -33,20 +33,25 @@ void StoryController::processNode(const DialogNode* node) {
     if (!node) return;
 
     // --- before: 占位符替换逻辑 ---
-    std::string processed_content = node->content;
-    // <PLAYER_NAME> 占位符
-    std::string placeholder_1 = "<PLAYER_NAME>";
-    size_t pos = processed_content.find(placeholder_1);
-    if (pos != std::string::npos) {
-        // 如果找到，用当前的玩家名替换它
-        processed_content.replace(pos, placeholder_1.length(), game_.getPlayer().getName());
+    std::vector<std::string> processed = { node->who, node->content} ;
+    for (auto& str : processed) {
+        // <PLAYER_NAME> 占位符
+        std::string placeholder_1 = "<PLAYER_NAME>";
+        size_t pos = str.find(placeholder_1);
+        if (pos != std::string::npos) {
+            // 如果找到，用当前的玩家名替换它
+            str.replace(pos, placeholder_1.length(), game_.getPlayer().getName());
+        }
+        
+        // <xxx> 其他占位符
     }
 
     // 步骤 1: 显示当前节点的对话内容
-    game_.getDialog().addMessage(node->who, processed_content);
+    game_.getDialog().addMessage(processed.at(0), processed.at(1));
 
-    // 步骤 2: 检查并处理当前节点的选项
+    // 步骤 2: 检查并处理当前节点的选项（交互式 & 线性）
     if (!node->choices.empty()) {
+        // --- 交互式节点：处理选项 ---
         std::vector<std::string> choiceTexts;
         for (const auto& choice : node->choices) {
             choiceTexts.push_back(choice.text);
@@ -74,13 +79,17 @@ void StoryController::processNode(const DialogNode* node) {
                 this->processNodeByID(selectedChoice.nextNodeID);
             }
         );
-    } 
-    // 如果没有选项，检查是否有下一个线性节点
-    else if (node->nextNodeID != 0) {
-        processNodeByID(node->nextNodeID);
-    }
-    // 步骤 3: 如果没有选项，检查节点本身是否附加了动作
-    else if (node->action) {
-         node->action(game_);
+    }  else {
+        // --- 线性节点：按顺序处理动作和跳转 ---
+        
+        // 步骤 2a: 执行当前节点的 Action (如果存在)
+        if (node->action) {
+             node->action(game_);
+        }
+
+        // 步骤 2b: 跳转到下一个节点 (如果存在)
+        if (node->nextNodeID != 0) {
+            processNodeByID(node->nextNodeID);
+        }
     }
 }
