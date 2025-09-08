@@ -28,24 +28,25 @@ private:
     std::string description;        // 技能描述
     SkillEffectType effectType;     // 技能效果类型
     bool isLocked;                  // 是否锁定（未解锁则无法使用）
+    int unlockCost;                 // 解锁所需技能点数
     
-    // 攻击相关属性（ 对非攻击技能这些值为0 ）
-    int baseDamage;                 // 基础伤害值
-    float damageCoefficient;        // 伤害系数
-    int baseHitRate;                // 基础命中率
-    float hitRateCoefficient;       // 命中率系数
-    int baseStaminaCost;            // 基础体力消耗
-    float staminaCostCoefficient;   // 体力消耗系数
+    // 攻击相关属性（对非攻击技能这些值为0）
+    double baseDamage;              // 基础伤害值
+    double damageCoefficient;       // 伤害系数
+    double baseHitRate;             // 基础命中率
+    double hitRateCoefficient;      // 命中率系数
+    double baseStaminaCost;         // 基础体力消耗
+    double staminaCostCoefficient;  // 体力消耗系数
     
     // 属性增益相关（对非属性增益技能这些值为0）
-    int minAttributeValue;          // 最低属性值
+    double minAttributeValue;       // 最低属性值
     std::string attributeType;      // 属性类型："agility"-敏捷, "stamina"-耐力, "strength"-力量
     
     // 训练效率相关（对非训练技能这些值为0）
-    float trainingMultiplier;       // 训练效率倍率
+    double trainingMultiplier;      // 训练效率倍率
     
     // 特殊效果相关
-    float effectValue;              // 效果数值
+    double effectValue;             // 效果数值
     std::function<void(Player&, Player&)> customEffect;  // 自定义效果函数
 
 public:
