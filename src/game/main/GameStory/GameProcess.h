@@ -27,12 +27,17 @@ public:
             {
                 // 可以留空，或者添加规则，例如：
                 {
-                    // condition: 输入 "God"
-                    .condition = [](std::string_view input){ return trim(std::string(input)) == "God"; },
-                    // action: 给予特殊回应，并重新请求输入
+                    // condition: 输入 "yaosanqi"
+                    .condition = [](std::string_view input){ return trim(std::string(input)) == "yaosanqi"; },
+                    // action: 给予特殊回应
                     .action = [](Game& g, std::string_view input){
-                        g.getDialog().addMessage("系统", "这个名字过于强大，凡人无法使用。");
-                        newStart(g); // 重新发起 newStart 流程
+                        g.getDialog().addMessage("系统", "你发现了一个彩蛋:)！");
+                        std::string name = trim(std::string(input));
+                        g.getPlayer().setName(name);
+                        PLAYER = name; // 更新全局玩家名
+                        
+                        // 名字输入成功后，继续剧情
+                        g.getStoryController().startStory(2);
                     }
                 }
             },
@@ -40,8 +45,8 @@ public:
             [](Game& g, std::string_view input) {
                 std::string name = trim(std::string(input));
                 // 进行名字有效性验证
-                if (name.empty() || name.length() > 8 || name.length() < 2) {
-                    g.getDialog().addMessage(UNKNOWN, "名字不合适，请重新输入一个2-8个字的名字。");
+                if (name.empty() || name.length() > 10 || name.length() < 2) {
+                    g.getDialog().addMessage(UNKNOWN, "名字不合适，请重新输入一个2-10个字的名字。");
                     newStart(g);
                     return;
                 }
