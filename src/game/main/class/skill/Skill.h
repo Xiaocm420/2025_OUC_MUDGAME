@@ -50,32 +50,13 @@ private:
     std::function<void(Player&, Player&)> customEffect;  // 自定义效果函数
 
 public:
-    // 构造函数 - 基础攻击技能
-    Skill(const std::string& name, const std::string& desc, 
-          double baseDmg, double dmgCoeff, 
-          double baseHit, double hitCoeff, 
-          double baseStamina, double staminaCoeff,
-          int cost);
     
-    // 构造函数 - 属性增益技能
-    Skill(const std::string& name, const std::string& desc,
-          double minValue, const std::string& attrType,
-          int cost);
-    
-    // 构造函数 - 训练效率技能
-    Skill(const std::string& name, const std::string& desc,
-          double multiplier, const std::string& attrType,
-          int cost);
-    
-    // 构造函数 - 特殊效果技能
-    Skill(const std::string& name, const std::string& desc,
-          SkillEffectType type, double value,
-          int cost);
-    
-    // 构造函数 - 自定义效果技能
-    Skill(const std::string& name, const std::string& desc,
-          std::function<void(Player&, Player&)> effect,
-          int cost);
+// 统一的构造函数
+Skill(const std::string& name, const std::string& desc, SkillEffectType type, int cost,
+      double baseDmg = 0, double dmgCoeff = 0, double baseHit = 0, double hitCoeff = 0,
+      double baseStamina = 0, double staminaCoeff = 0, double minValue = 0,
+      const std::string& attrType = "", double multiplier = 0, double value = 0,
+      std::function<void(Player&, Player&)> effect = nullptr);
 
     // 获取技能基本信息
     std::string getSkillName() const;           // 获取技能名称

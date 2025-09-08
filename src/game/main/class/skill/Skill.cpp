@@ -8,58 +8,21 @@
 #include <cstdlib>
 #include <ctime>
 
-// ========== 构造函数实现 ==========
-// 基础攻击技能构造函数
-Skill::Skill(const std::string& name, const std::string& desc,
-             double baseDmg, double dmgCoeff,
-             double baseHit, double hitCoeff,
-             double baseStamina, double staminaCoeff, int cost)
-    : skillName(name), description(desc), effectType(SkillEffectType::BASIC_ATTACK),
+// ========== 统一构造函数实现 ==========
+Skill::Skill(const std::string& name, const std::string& desc, SkillEffectType type, int cost,
+             double baseDmg, double dmgCoeff, double baseHit, double hitCoeff,
+             double baseStamina, double staminaCoeff, double minValue,
+             const std::string& attrType, double multiplier, double value,
+             std::function<void(Player&, Player&)> effect)
+    : skillName(name), description(desc), effectType(type),
       isLocked(true), unlockCost(cost), baseDamage(baseDmg), damageCoefficient(dmgCoeff),
       baseHitRate(baseHit), hitRateCoefficient(hitCoeff),
       baseStaminaCost(baseStamina), staminaCostCoefficient(staminaCoeff),
-      minAttributeValue(0), attributeType(""),
-      trainingMultiplier(0.0), effectValue(0.0), customEffect(nullptr) {}
-
-// 属性增益技能构造函数
-Skill::Skill(const std::string& name, const std::string& desc,
-             double minValue, const std::string& attrType, int cost)
-    : skillName(name), description(desc), effectType(SkillEffectType::ATTRIBUTE_BOOST),
-      isLocked(true), unlockCost(cost), baseDamage(0), damageCoefficient(0.0),
-      baseHitRate(0), hitRateCoefficient(0.0),
-      baseStaminaCost(0), staminaCostCoefficient(0.0),
       minAttributeValue(minValue), attributeType(attrType),
-      trainingMultiplier(0.0), effectValue(0.0), customEffect(nullptr) {}
+      trainingMultiplier(multiplier), effectValue(value), customEffect(effect) {}
 
-// 训练效率技能构造函数
-Skill::Skill(const std::string& name, const std::string& desc,
-             double multiplier, const std::string& attrType, int cost)
-    : skillName(name), description(desc), effectType(SkillEffectType::TRAINING_EFFICIENCY),
-      isLocked(true), unlockCost(cost), baseDamage(0), damageCoefficient(0.0),
-      baseHitRate(0), hitRateCoefficient(0.0),
-      baseStaminaCost(0), staminaCostCoefficient(0.0),
-      minAttributeValue(0), attributeType(attrType),
-      trainingMultiplier(multiplier), effectValue(0.0), customEffect(nullptr) {}
 
-// 特殊效果技能构造函数
-Skill::Skill(const std::string& name, const std::string& desc,
-             SkillEffectType type, double value, int cost)
-    : skillName(name), description(desc), effectType(type),
-      isLocked(true), unlockCost(cost), baseDamage(0), damageCoefficient(0.0),
-      baseHitRate(0), hitRateCoefficient(0.0),
-      baseStaminaCost(0), staminaCostCoefficient(0.0),
-      minAttributeValue(0), attributeType(""),
-      trainingMultiplier(0.0), effectValue(value), customEffect(nullptr) {}
 
-// 自定义效果技能构造函数
-Skill::Skill(const std::string& name, const std::string& desc,
-             std::function<void(Player&, Player&)> effect, int cost)
-    : skillName(name), description(desc), effectType(SkillEffectType::NONE),
-      isLocked(true), unlockCost(cost), baseDamage(0), damageCoefficient(0.0),
-      baseHitRate(0), hitRateCoefficient(0.0),
-      baseStaminaCost(0), staminaCostCoefficient(0.0),
-      minAttributeValue(0), attributeType(""),
-      trainingMultiplier(0.0), effectValue(0.0), customEffect(effect) {}
 
 // ========== Getter 实现 ==========
 std::string Skill::getSkillName() const { return skillName; }
@@ -264,114 +227,128 @@ std::vector<Skill*> createAllSkills() {
     std::vector<Skill*> skills;
     
     // ==================== 基础攻击技能 ====================
-    // 格式: 技能名称, 描述, 基础伤害, 伤害系数, 基础命中率, 命中系数, 基础体力消耗, 体力消耗系数, 解锁所需技能点
+    // 格式: 技能名称, 描述, 技能类型, 解锁所需技能点, 基础伤害, 伤害系数, 基础命中率, 命中系数, 基础体力消耗, 体力消耗系数
     
     // 1技能点基础攻击技能
-    skills.push_back(new Skill("直拳", "快速直拳攻击", 
-        1.0, 0.7, 70.0, 20.0, 0.0, 1.0, 1));
+    skills.push_back(new Skill("直拳", "快速直拳攻击", SkillEffectType::BASIC_ATTACK, 1,
+        1.0, 0.7, 70.0, 20.0, 0.0, 1.0));
     
-    skills.push_back(new Skill("踢腿", "基础踢腿攻击", 
-        3.0, 0.3, 30.0, 30.0, 0.0, 1.0, 1));
+    skills.push_back(new Skill("踢腿", "基础踢腿攻击", SkillEffectType::BASIC_ATTACK, 1,
+        3.0, 0.3, 30.0, 30.0, 0.0, 1.0));
     
     // 2技能点基础攻击技能
-    skills.push_back(new Skill("高踢腿", "高位踢腿攻击", 
-        4.0, 0.7, 15.0, 40.0, 1.0, 1.2, 2));
+    skills.push_back(new Skill("高踢腿", "高位踢腿攻击", SkillEffectType::BASIC_ATTACK, 2,
+        4.0, 0.7, 15.0, 40.0, 1.0, 1.2));
     
-    skills.push_back(new Skill("重拳", "强力拳击", 
-        3.0, 0.9, 60.0, 20.0, 2.0, 1.2, 2));
+    skills.push_back(new Skill("重拳", "强力拳击", SkillEffectType::BASIC_ATTACK, 2,
+        3.0, 0.9, 60.0, 20.0, 2.0, 1.2));
     
-    skills.push_back(new Skill("上钩拳", "上勾拳攻击", 
-        1.5, 1.7, 65.0, 25.0, 1.0, 1.5, 2));
+    skills.push_back(new Skill("上钩拳", "上勾拳攻击", SkillEffectType::BASIC_ATTACK, 2,
+        1.5, 1.7, 65.0, 25.0, 1.0, 1.5));
     
-    skills.push_back(new Skill("反手重拳", "反手强力拳击", 
-        3.0, 2.0, 20.0, 60.0, 2.0, 1.5, 2));
+    skills.push_back(new Skill("反手重拳", "反手强力拳击", SkillEffectType::BASIC_ATTACK, 2,
+        3.0, 2.0, 20.0, 60.0, 2.0, 1.5));
     
-    skills.push_back(new Skill("反手直拳", "反手直拳攻击", 
-        2.0, 1.5, 45.0, 35.0, 2.0, 1.5, 2));
+    skills.push_back(new Skill("反手直拳", "反手直拳攻击", SkillEffectType::BASIC_ATTACK, 2,
+        2.0, 1.5, 45.0, 35.0, 2.0, 1.5));
     
-    skills.push_back(new Skill("交叉拳", "交叉组合拳", 
-        2.5, 2.0, 65.0, 25.0, 1.5, 1.6, 2));
+    skills.push_back(new Skill("交叉拳", "交叉组合拳", SkillEffectType::BASIC_ATTACK, 2,
+        2.5, 2.0, 65.0, 25.0, 1.5, 1.6));
     
     // 3技能点基础攻击技能
-    skills.push_back(new Skill("空手道踢腿", "空手道踢技", 
-        3.0, 1.0, 20.0, 50.0, 1.5, 0.8, 3));
+    skills.push_back(new Skill("空手道踢腿", "空手道踢技", SkillEffectType::BASIC_ATTACK, 3,
+        3.0, 1.0, 20.0, 50.0, 1.5, 0.8));
     
-    skills.push_back(new Skill("空手道高踢腿", "空手道高踢", 
-        5.0, 1.0, 10.0, 55.0, 2.0, 1.0, 3));
+    skills.push_back(new Skill("空手道高踢腿", "空手道高踢", SkillEffectType::BASIC_ATTACK, 3,
+        5.0, 1.0, 10.0, 55.0, 2.0, 1.0));
     
-    skills.push_back(new Skill("爪击", "利爪攻击", 
-        8.0, 1.3, 40.0, 20.0, 4.0, 1.3, 3));
+    skills.push_back(new Skill("爪击", "利爪攻击", SkillEffectType::BASIC_ATTACK, 3,
+        8.0, 1.3, 40.0, 20.0, 4.0, 1.3));
     
-    skills.push_back(new Skill("折背", "折背攻击", 
-        4.0, 1.5, 40.0, 35.0, 3.0, 1.0, 3));
+    skills.push_back(new Skill("折背", "折背攻击", SkillEffectType::BASIC_ATTACK, 3,
+        4.0, 1.5, 40.0, 35.0, 3.0, 1.0));
     
-    skills.push_back(new Skill("拳术直拳", "拳术直拳", 
-        0.0, 1.7, 70.0, 20.0, 1.0, 0.7, 3));
+    skills.push_back(new Skill("拳术直拳", "拳术直拳", SkillEffectType::BASIC_ATTACK, 3,
+        0.0, 1.7, 70.0, 20.0, 1.0, 0.7));
     
-    skills.push_back(new Skill("蓄力上勾拳", "蓄力上勾拳", 
-        0.0, 2.0, 60.0, 25.0, 1.0, 0.8, 3));
+    skills.push_back(new Skill("蓄力上勾拳", "蓄力上勾拳", SkillEffectType::BASIC_ATTACK, 3,
+        0.0, 2.0, 60.0, 25.0, 1.0, 0.8));
     
     // 4技能点基础攻击技能
-    skills.push_back(new Skill("空手道劈斩", "空手道劈砍", 
-        2.0, 1.5, 20.0, 55.0, 2.0, 1.2, 4));
+    skills.push_back(new Skill("空手道劈斩", "空手道劈砍", SkillEffectType::BASIC_ATTACK, 4,
+        2.0, 1.5, 20.0, 55.0, 2.0, 1.2));
     
-    skills.push_back(new Skill("迅击", "迅捷攻击", 
-        4.0, 1.5, 60.0, 20.0, 2.0, 0.6, 4));
+    skills.push_back(new Skill("迅击", "迅捷攻击", SkillEffectType::BASIC_ATTACK, 4,
+        4.0, 1.5, 60.0, 20.0, 2.0, 0.6));
     
-    skills.push_back(new Skill("近战缠斗", "近身缠斗", 
-        1.0, 2.5, 60.0, 20.0, 1.0, 0.7, 4));
+    skills.push_back(new Skill("近战缠斗", "近身缠斗", SkillEffectType::BASIC_ATTACK, 4,
+        1.0, 2.5, 60.0, 20.0, 1.0, 0.7));
     
     // ==================== 属性增益技能 ====================
-    // 格式: 技能名称, 描述, 最低属性值, 属性类型, 解锁所需技能点
+    // 格式: 技能名称, 描述, 技能类型, 解锁所需技能点, 最低属性值, 属性类型
     
-    // 1技能点属性增益技能
-    skills.push_back(new Skill("屹立不倒", "敏捷不会低于4", 4.0, "agility", 1));
-    skills.push_back(new Skill("肉食跑者", "耐力不会低于4", 4.0, "stamina", 1));
-    skills.push_back(new Skill("肌肉记忆", "力量不会低于4", 4.0, "strength", 1));
+    skills.push_back(new Skill("屹立不倒", "敏捷不会低于4", SkillEffectType::ATTRIBUTE_BOOST, 1,
+        0, 0, 0, 0, 0, 0, 4.0, "agility"));
     
-    // 2技能点属性增益技能
-    skills.push_back(new Skill("屹立不倒2", "敏捷不会低于8", 8.0, "agility", 2));
-    skills.push_back(new Skill("肉食跑者2", "耐力不会低于8", 8.0, "stamina", 2));
-    skills.push_back(new Skill("肌肉记忆2", "力量不会低于8", 8.0, "strength", 2));
+    skills.push_back(new Skill("肉食跑者", "耐力不会低于4", SkillEffectType::ATTRIBUTE_BOOST, 1,
+        0, 0, 0, 0, 0, 0, 4.0, "stamina"));
     
-    // 3技能点属性增益技能
-    skills.push_back(new Skill("屹立不倒3", "敏捷不会低于13", 13.0, "agility", 3));
-    skills.push_back(new Skill("肉食跑者3", "耐力不会低于13", 13.0, "stamina", 3));
-    skills.push_back(new Skill("肌肉记忆3", "力量不会低于13", 13.0, "strength", 3));
+    skills.push_back(new Skill("肌肉记忆", "力量不会低于4", SkillEffectType::ATTRIBUTE_BOOST, 1,
+        0, 0, 0, 0, 0, 0, 4.0, "strength"));
+    
+    skills.push_back(new Skill("屹立不倒2", "敏捷不会低于8", SkillEffectType::ATTRIBUTE_BOOST, 2,
+        0, 0, 0, 0, 0, 0, 8.0, "agility"));
+    
+    skills.push_back(new Skill("肉食跑者2", "耐力不会低于8", SkillEffectType::ATTRIBUTE_BOOST, 2,
+        0, 0, 0, 0, 0, 0, 8.0, "stamina"));
+    
+    skills.push_back(new Skill("肌肉记忆2", "力量不会低于8", SkillEffectType::ATTRIBUTE_BOOST, 2,
+        0, 0, 0, 0, 0, 0, 8.0, "strength"));
+    
+    skills.push_back(new Skill("屹立不倒3", "敏捷不会低于13", SkillEffectType::ATTRIBUTE_BOOST, 3,
+        0, 0, 0, 0, 0, 0, 13.0, "agility"));
+    
+    skills.push_back(new Skill("肉食跑者3", "耐力不会低于13", SkillEffectType::ATTRIBUTE_BOOST, 3,
+        0, 0, 0, 0, 0, 0, 13.0, "stamina"));
+    
+    skills.push_back(new Skill("肌肉记忆3", "力量不会低于13", SkillEffectType::ATTRIBUTE_BOOST, 3,
+        0, 0, 0, 0, 0, 0, 13.0, "strength"));
     
     // ==================== 训练效率技能 ====================
-    // 格式: 技能名称, 描述, 训练效率倍率, 属性类型, 解锁所需技能点
+    // 格式: 技能名称, 描述, 技能类型, 解锁所需技能点, 训练效率倍率, 属性类型
     
-    // 3技能点训练效率技能
-    skills.push_back(new Skill("迅速", "敏捷训练效率增加50%", 1.5, "agility", 3));
-    skills.push_back(new Skill("意志", "耐力训练效率增加50%", 1.5, "stamina", 3));
-    skills.push_back(new Skill("激励", "力量训练效率增加50%", 1.5, "strength", 3));
+    skills.push_back(new Skill("迅速", "敏捷训练效率增加50%", SkillEffectType::TRAINING_EFFICIENCY, 3,
+        0, 0, 0, 0, 0, 0, 0, "agility", 1.5));
+    
+    skills.push_back(new Skill("意志", "耐力训练效率增加50%", SkillEffectType::TRAINING_EFFICIENCY, 3,
+        0, 0, 0, 0, 0, 0, 0, "stamina", 1.5));
+    
+    skills.push_back(new Skill("激励", "力量训练效率增加50%", SkillEffectType::TRAINING_EFFICIENCY, 3,
+        0, 0, 0, 0, 0, 0, 0, "strength", 1.5));
     
     // ==================== 特殊效果技能 ====================
-    // 格式: 技能名称, 描述, 效果类型, 效果数值, 解锁所需技能点
+    // 格式: 技能名称, 描述, 技能类型, 解锁所需技能点, 效果数值
     
-    // 2技能点特殊效果技能
-    skills.push_back(new Skill("闪击", "25%概率反伤25%对面造成的伤害", 
-        SkillEffectType::DAMAGE_REFLECT, 0.25, 2));
+    skills.push_back(new Skill("闪击", "25%概率反伤25%对面造成的伤害", SkillEffectType::DAMAGE_REFLECT, 2,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 0.25));
     
-    skills.push_back(new Skill("自杀式袭击", "命中率降低10%，能量消耗降低20%", 
-        SkillEffectType::HIT_RATE_MODIFIER, -0.1, 2));
+    skills.push_back(new Skill("自杀式袭击", "命中率降低10%，能量消耗降低20%", SkillEffectType::HIT_RATE_MODIFIER, 2,
+        0, 0, 0, 0, 0, 0, 0, "", 0, -0.1));
     
-    skills.push_back(new Skill("千手不破", "受到对面上肢攻击降低30%，下肢攻击增加20%", 
-        SkillEffectType::ATTACK_TYPE_DEFENSE, 0.3, 2));
+    skills.push_back(new Skill("千手不破", "受到对面上肢攻击降低30%，下肢攻击增加20%", SkillEffectType::ATTACK_TYPE_DEFENSE, 2,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 0.3));
     
-    skills.push_back(new Skill("人身重锤", "25%概率降低对面10耐力", 
-        SkillEffectType::ENEMY_ATTRIBUTE_MOD, 10.0, 2));
+    skills.push_back(new Skill("人身重锤", "25%概率降低对面10耐力", SkillEffectType::ENEMY_ATTRIBUTE_MOD, 2,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 10.0));
     
-    // 4技能点特殊效果技能
-    skills.push_back(new Skill("钝兵挫锐", "免伤20%", 
-        SkillEffectType::DAMAGE_REDUCTION, 0.2, 4));
+    skills.push_back(new Skill("钝兵挫锐", "免伤20%", SkillEffectType::DAMAGE_REDUCTION, 4,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 0.2));
     
-    skills.push_back(new Skill("无限能量", "如果体力低于50%，能量消耗降低15%", 
-        SkillEffectType::STAMINA_MODIFIER, 0.15, 4));
+    skills.push_back(new Skill("无限能量", "如果体力低于50%，能量消耗降低15%", SkillEffectType::STAMINA_MODIFIER, 4,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 0.15));
     
-    skills.push_back(new Skill("拳击手", "命中率在原本基础上提高10%", 
-        SkillEffectType::GLOBAL_HIT_RATE_BOOST, 0.1, 4));
+    skills.push_back(new Skill("拳击手", "命中率在原本基础上提高10%", SkillEffectType::GLOBAL_HIT_RATE_BOOST, 4,
+        0, 0, 0, 0, 0, 0, 0, "", 0, 0.1));
     
     return skills;
 }
