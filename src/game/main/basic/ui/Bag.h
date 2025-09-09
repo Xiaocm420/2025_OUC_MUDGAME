@@ -13,7 +13,7 @@ struct Item {
     std::string name;
     std::string description;
     std::string icon;
-    int quantity;
+    int amount;
     int type; // 0: 普通物品, 1: 食物, 2: 药品
 };
 
@@ -26,6 +26,8 @@ public:
     void hide();
     [[nodiscard]] bool isShowing() const;
 
+    void setItemAmount(const int amount, Item* item);
+
 private:
     void initializeItems();
     [[nodiscard]] int getTotalPages() const;
@@ -34,7 +36,7 @@ private:
     bool isShowing_ = false;
 
     // --- 物品数据 ---
-    std::vector<Item> items_;
+    std::vector<Item*> items_;
     int selectedItemIndex_ = -1;
     int currentPage_ = 0;
 

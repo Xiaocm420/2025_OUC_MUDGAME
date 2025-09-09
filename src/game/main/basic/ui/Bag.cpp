@@ -34,9 +34,9 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
 
             const auto& item = items_[globalIndex];
             auto element = vbox({
-                text(item.icon) | center | bold,
-                text(item.name) | center | size(WIDTH, LESS_THAN, 10),
-                text("x" + std::to_string(item.quantity)) | center | color(Color::Green)
+                text(item->icon) | center | bold,
+                text(item->name) | center | size(WIDTH, LESS_THAN, 10),
+                text("x" + std::to_string(item->amount)) | center | color(Color::Green)
             });
 
             if (s.active) {
@@ -44,7 +44,7 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
             }
             return element;
         };
-        
+
         itemButtons_[i] = Button("", on_click, option);
         interactive_components.push_back(itemButtons_[i]);
     }
@@ -63,7 +63,7 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
             selectedItemIndex_ = -1;
         }
     });
-    
+
     interactive_components.push_back(exitButton_);
     interactive_components.push_back(pagePrevButton_);
     interactive_components.push_back(pageNextButton_);
@@ -76,11 +76,8 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
 
 void Bag::initializeItems() {
     // 示例物品
-    items_ = {
-        {"food_apple", "苹果", "一个新鲜的苹果。", "🍎", 5, 1},
-
+    items_ = {};
         // TODO: 考虑放些初始物品
-    };
 }
 
 int Bag::getTotalPages() const {
@@ -105,7 +102,7 @@ Element Bag::Render() {
     }
 
     // Render函数只负责“布局”，不负责“创建”组件
-    
+
     Elements grid_rows;
     for (int r = 0; r < 5; ++r) {
         Elements row_elements;
@@ -135,10 +132,10 @@ Element Bag::Render() {
     std::string itemDetailClass;
     if (selectedItemIndex_ >= 0 && selectedItemIndex_ < static_cast<int>(items_.size())) {
         const auto& item = items_[selectedItemIndex_];
-        itemDetailName = "名称: " + item.name;
-        itemDetailDesc = "描述: " + item.description;
-        itemDetailAmount = "数量: " + std::to_string(item.quantity);
-        itemDetailClass = "类型: " + std::string(item.type == 0 ? "普通物品" : (item.type == 1 ? "食物" : "药品"));
+        itemDetailName = "名称: " + item->name;
+        itemDetailDesc = "描述: " + item->description;
+        itemDetailAmount = "数量: " + std::to_string(item->amount);
+        itemDetailClass = "类型: " + std::string(item->type == 0 ? "普通物品" : (item->type == 1 ? "食物" : "药品"));
     }
     auto detailPanel = vbox({
         text("物品详情") | bold | center,
@@ -166,7 +163,7 @@ Element Bag::Render() {
         separator(),
         controlPanel
     });
-    
+
     return window(text(" 背包 ") | bold, mainLayout) | clear_under;
 }
 
@@ -182,4 +179,18 @@ void Bag::hide() {
 
 bool Bag::isShowing() const {
     return isShowing_;
+}
+
+void Bag::setItemAmount(const int amount, Item* item) {
+    auto index = std::ranges::find(items_.begin(), items_.end(), item);
+    if (index == items_.end()) {
+        items_.push_back(item);
+        index = items_.end() - 1;
+    }
+        (*index)->amount = amount;
+        if ((*index)->amount > 7) {
+            (*index)->amount = 7;
+        } else if ((*index)->amount < 0) {
+            (*index)->amount = 0;
+        }
 }
