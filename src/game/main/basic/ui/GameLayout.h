@@ -15,6 +15,8 @@ class Game;
  * @brief 一个自定义FTXUI组件，封装了整个游戏主界面的布局、状态和交互逻辑。
  * @details 通过将所有子组件和UI状态作为成员变量，解决了生命周期问题，并提高了代码的封装性。
  */
+class Bag;
+
 class GameLayout : public ftxui::ComponentBase {
 public:
     /**
@@ -22,6 +24,8 @@ public:
      * @param game_logic 对Game核心对象的引用，用于获取游戏状态和数据。
      */
     explicit GameLayout(Game& game_logic);
+
+    ~GameLayout();
 
     /**
      * @brief 重写的Render方法，FTXUI每一帧都会调用此方法来绘制界面。
@@ -47,6 +51,10 @@ private:
     ftxui::Component text_input_component_;     ///< 通用的文本输入组件。
     ftxui::Component choice_container_;         ///< 用于动态添加选项按钮的容器。
     ftxui::Component inputArea_;                ///< 包含所有输入模式的Tab容器。
+
+    // 背包组件
+    ftxui::Component bag_;                      ///< 背包界面组件。
+    ftxui::Component top_level_container_;      ///< 添加一个顶层容器
 };
 
 #endif // GAMELAYOUT_H

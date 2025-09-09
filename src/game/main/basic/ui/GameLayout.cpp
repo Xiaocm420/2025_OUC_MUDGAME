@@ -1,4 +1,5 @@
 #include "GameLayout.h"
+#include "Bag.h"
 #include "../Game.h"
 #include "../Dialog.h"
 #include "../../class/entity/Player.h"
@@ -16,6 +17,8 @@ using namespace ftxui;
  */
 GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic), 
                                            animation_start_time_(std::chrono::steady_clock::now()) {
+    // 初始化背包组件
+    bag_ = Make<Bag>(game_logic_);
 
     // -- 对话历史渲染器 --
     auto mainViewRenderer = Renderer([this] {
@@ -98,7 +101,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
             }
             messageElements.push_back(hbox({
                 text(msg.who) | bold | color(whoColor),
-                text(": "),
+                text(msg.who.empty() ? "" : ": "),
                 paragraph(shownContent) | flex
             }));
         }
@@ -109,7 +112,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         return window(text(" 对话记录 "), vbox(messageElements) | flex | yframe);
     });
 
-    interactiveMainView_ = CatchEvent(mainViewRenderer, [this](Event e) {
+    interactiveMainView_ = CatchEvent(mainViewRenderer, [this](const Event& e) {
         const auto& messages = game_logic_.getDialog().getHistory();
         int max_offset = static_cast<int>(messages.size()) - 1;
         if (max_offset < 0) max_offset = 0;
@@ -127,9 +130,10 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
     });
 
     // -- 右侧功能菜单 --
+    Bag* bag_ptr = static_cast<Bag*>(bag_.get());
     auto button_phone = Button(" 我的手机 ", []{}, ButtonOption::Animated());
     auto button_settings = Button(" 游戏设置 ", [&] { game_logic_.showGameSettings(); }, ButtonOption::Animated());
-    auto button_bag = Button("   背包  ", []{}, ButtonOption::Animated());
+    auto button_bag = Button("   背包  ", [bag_ptr] { bag_ptr->show(); }, ButtonOption::Animated());
     auto button_schedule = Button(" 我的日程 ", []{}, ButtonOption::Animated());
     navigationContainer_ = Container::Vertical({
         button_phone,
@@ -177,12 +181,23 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         &selected_input_mode_
     );
 
-    // 将所有子组件添加到父组件中，确保事件能够正确传递
-    Add(Container::Vertical({
+    // --- [修改开始] ---
+    // 将所有主界面组件组合到一个单独的容器中
+    auto main_game_container = Container::Vertical({
         interactiveMainView_,
         navigationContainer_,
         inputArea_,
-    }));
+    });
+
+    // 使用 Container::Stacked 来管理主界面和背包层，确保背包也能接收事件
+    auto top_level_container = Container::Stacked({
+        main_game_container,
+        bag_
+    });
+
+    // 将这个顶层容器作为 GameLayout 的子组件
+    Add(top_level_container);
+    // --- [修改结束] ---
 }
 
 
@@ -191,6 +206,10 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
  * @details 负责根据当前游戏状态同步UI，并组合所有子组件来构建最终的界面布局。
  */
 Element GameLayout::Render() {
+    // --- [修改开始] ---
+    // 移除了此处错误的 if (bag_->isShowing()) return bag_->Render(); 逻辑
+    // --- [修改结束] ---
+
     // -- 状态同步：根据Game状态切换Tab的显示，并动态更新内容 --
     GameState state = game_logic_.getCurrentState();
     auto request_opt = game_logic_.getCurrentInputRequest();
@@ -210,7 +229,7 @@ Element GameLayout::Render() {
                     choice_container_->DetachAllChildren();
                     for (int i = 0; i < request_opt->choices.size(); ++i) {
                          choice_container_->Add(
-                             Button(request_opt->choices[i], [this, i, choice = request_opt->choices[i], on_select = request_opt->on_choice_select] {
+                             Button(request_opt->choices[i], [i, choice = request_opt->choices[i], on_select = request_opt->on_choice_select] {
                                  on_select(i, choice);
                              }, ButtonOption::Animated())
                          );
@@ -259,5 +278,20 @@ Element GameLayout::Render() {
     auto mainContent = hbox({ left_panel, rightPanel });
     Element footer = window(text(input_prompt), inputArea_->Render());
 
-    return vbox({ header, mainContent | flex, footer });
+    Element mainLayout = vbox({ header, mainContent | flex, footer });
+
+    Bag* bag_ptr = static_cast<Bag*>(bag_.get());
+    // 如果背包正在显示，使用 dbox 将背包界面叠加在主界面上。
+    if (bag_ptr && bag_ptr->isShowing()) {
+        return dbox({
+            mainLayout,
+            bag_->Render() // bag_->Render() 依然可以正常调用
+        });
+    }
+
+    // 否则，只渲染主界面 (移除了原先重复的 vbox({...}) 创建)
+    return mainLayout;
+    // --- [修改结束] ---
 }
+
+GameLayout::~GameLayout() = default;
