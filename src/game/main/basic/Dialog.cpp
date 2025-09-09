@@ -6,7 +6,34 @@
 Dialog::Dialog(Game& game_logic) : game_logic_(game_logic) {}
 
 void Dialog::addMessage(const std::string& who, const std::string& content) {
-    history_.push_back({who, content, std::chrono::steady_clock::now()});
+
+    // --- 占位符替换逻辑 ---
+    std::vector<std::string> processed = { who, content} ;
+    for (auto& str : processed) {
+        // <PLAYER_NAME> 占位符
+        std::string placeholder = "<PLAYER_NAME>";
+        size_t pos = str.find(placeholder);
+        if (pos != std::string::npos) {
+            // 如果找到，用当前的玩家名替换它
+            str.replace(pos, placeholder.length(), game_logic_.getPlayer().getName());
+        }
+
+        // <UNKNOWN> 占位符
+        placeholder = "<UNKNOWN>";
+        pos = str.find(placeholder);
+        if (pos != std::string::npos) {
+            str.replace(pos, placeholder.length(), "???");
+        }
+
+        // <SYSTEM> 占位符
+        placeholder = "<SYSTEM>";
+        pos = str.find(placeholder);
+        if (pos != std::string::npos) {
+            str.replace(pos, placeholder.length(), "系统");
+        }
+    }
+
+    history_.push_back({processed.at(0), processed.at(1), std::chrono::steady_clock::now()});
 
     // 如果历史记录过长，则移除最旧的一条
     if (history_.size() > MAX_HISTORY_SIZE) {

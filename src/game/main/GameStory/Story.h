@@ -39,19 +39,21 @@ struct DialogNode {
      * @param who 说话者的名字。
      * @param content 对话的完整内容。
      * @param choices (可选) 玩家可以在此节点做出的选项列表。
-     * @param nextNodeID (可选) 如果没有选项，则自动跳转到此ID的节点。
-     * @param action (可选) 在显示完此节点内容且无选项时执行的动作。
+     * @param nextNodeID (可选) 如果是线性剧情，在序列执行完毕后自动跳转到此ID的节点。
+     * @param sequence (可选) 节点触发后要执行的一系列剧情步骤（如说话、停顿）。
      */
-    DialogNode(const unsigned int id, const std::string& who, const std::string& content,
-        const std::vector<Choice>& choices = {}, const unsigned int nextNodeID = 0, ChoiceAction action = nullptr)
-        : id(id), who(who), content(content), choices(choices), nextNodeID(nextNodeID), action(std::move(action)) {}
+    DialogNode(unsigned int id, const std::string& who, const char* content,
+               const std::vector<Choice>& choices = {}, unsigned int nextNodeID = 0,
+               const StorySequence& sequence = {})
+             : id(id), who(who), content(content), choices(choices),
+               nextNodeID(nextNodeID), sequence(sequence) {}
 
     unsigned int id;                  ///< 节点的唯一ID。
     const std::string who;            ///< 说话者。
     const std::string content;        ///< 对话内容。
     const std::vector<Choice> choices;///< 选项列表。
     const unsigned int nextNodeID;    ///< 线性剧情的下一个节点ID
-    const ChoiceAction action;        ///< 节点自身的动作。
+    const StorySequence sequence;     ///< 节点触发后执行的剧情序列。
 };
 
 // 任务状态枚举

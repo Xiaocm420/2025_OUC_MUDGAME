@@ -1,7 +1,9 @@
 #include "GameLayout.h"
-#include "Bag.h"
+#include "BagLayout.h"
+#include "PhoneLayout.h"
 #include "../Game.h"
 #include "../Dialog.h"
+#include "../StoryController.h"
 #include "../../class/entity/Player.h"
 
 #include "FTXUI/component/screen_interactive.hpp"
@@ -16,9 +18,10 @@ using namespace ftxui;
  *          关键在于，所有组件都作为成员变量，保证了其生命周期与GameLayout实例一致。
  */
 GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic), 
-                                           animation_start_time_(std::chrono::steady_clock::now()) {
+                                           animationStartTime_(std::chrono::steady_clock::now()) {
     // 初始化背包组件
-    bag_ = Make<Bag>(game_logic_);
+    bagLayout_ = Make<BagLayout>(game_logic_);
+    phoneLayout_ = Make<PhoneLayout>(game_logic_);
 
     // -- 对话历史渲染器 --
     auto mainViewRenderer = Renderer([this] {
@@ -29,18 +32,18 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         if (game_logic_.getDialog().historyWasClearedAndConsume()) {
             if (!messages.empty()) {
                 // 如果历史记录被清空后又有了新内容，则从头开始播放动画。
-                current_message_index_ = 0;
-                animation_start_time_ = std::chrono::steady_clock::now();
+                currentMessageIndex_ = 0;
+                animationStartTime_ = std::chrono::steady_clock::now();
             } else {
                 // 如果历史记录被清空后是空的，则只重置索引。
-                current_message_index_ = 0;
+                currentMessageIndex_ = 0;
             }
         }
 
         // -- 动画状态推进逻辑 --
         // 只有当有消息且当前动画索引有效时才进行判断
-        if (!messages.empty() && current_message_index_ < messages.size()) {
-            const auto& current_msg = messages[current_message_index_];
+        if (!messages.empty() && currentMessageIndex_ < messages.size()) {
+            const auto& current_msg = messages[currentMessageIndex_];
             auto content_size = Utf8ToGlyphs(current_msg.content).size();
             
             // 计算完成当前消息动画所需的总时间（打字时间 + 结束后延迟）
@@ -49,28 +52,28 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
             auto total_animation_time = typing_duration + post_delay;
 
             // 检查自当前动画开始以来，是否已经过了所需的总时间
-            if (std::chrono::steady_clock::now() - animation_start_time_ > total_animation_time) {
+            if (std::chrono::steady_clock::now() - animationStartTime_ > total_animation_time) {
                 // 如果动画已结束，并且后面还有更多消息，则准备播放下一条
-                if (current_message_index_ < messages.size() - 1) {
-                    current_message_index_++;
+                if (currentMessageIndex_ < messages.size() - 1) {
+                    currentMessageIndex_++;
                     // 为下一条消息的动画重置计时器
-                    animation_start_time_ = std::chrono::steady_clock::now();
+                    animationStartTime_ = std::chrono::steady_clock::now();
                 }
             }
         } else if (!messages.empty()) {
             // 如果消息列表不为空，但索引越界，则修正索引到最后一条消息
-            current_message_index_ = messages.size() - 1;
+            currentMessageIndex_ = messages.size() - 1;
         }
 
         // -- 渲染逻辑 --
         Elements messageElements;
         size_t total = messages.size();
-        size_t end = total > static_cast<size_t>(scroll_index_) ? total - scroll_index_ : 0;
+        size_t end = total > static_cast<size_t>(scrollIndex_) ? total - scrollIndex_ : 0;
         
         for (size_t i = 0; i < end; ++i) {
             // 只处理和渲染那些已经播放完毕或正在播放的消息。
             // 完全跳过未来的消息，避免它们的 "who" 提前显示。
-            if (i > current_message_index_) {
+            if (i > currentMessageIndex_) {
                 continue; // 跳过此循环的剩余部分
             }
 
@@ -80,13 +83,13 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
             size_t contentSize = glyphs.size();
             size_t shownChars = 0;
 
-            if (i < current_message_index_) {
+            if (i < currentMessageIndex_) {
                 // 已播放完毕的消息，完整显示
                 shownChars = contentSize;
             } else { // 循环开头已有 i > current_message_index_ 判断，故此处必为 i == current_message_index_
                 // 正在播放的当前消息，根据独立的动画计时器计算显示长度
                 auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now() - animation_start_time_
+                    std::chrono::steady_clock::now() - animationStartTime_
                 ).count();
                 shownChars = std::min(contentSize, static_cast<size_t>(elapsedMs / 20));
             }
@@ -96,7 +99,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
             for (size_t j = 0; j < shownChars && j < glyphs.size(); ++j) {
                 shownContent += glyphs[j];
             }
-            if ((i == current_message_index_) && (shownChars < contentSize)) {
+            if ((i == currentMessageIndex_) && (shownChars < contentSize)) {
                shownContent += "_";
             }
             messageElements.push_back(hbox({
@@ -117,23 +120,25 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         int max_offset = static_cast<int>(messages.size()) - 1;
         if (max_offset < 0) max_offset = 0;
         if (e == Event::ArrowUp || e == Event::PageUp) {
-            scroll_index_ = std::min(scroll_index_ + (e == Event::PageUp ? 5 : 1), max_offset);
+            scrollIndex_ = std::min(scrollIndex_ + (e == Event::PageUp ? 5 : 1), max_offset);
             return true;
         }
         if (e == Event::ArrowDown || e == Event::PageDown) {
-            scroll_index_ = std::max(scroll_index_ - (e == Event::PageDown ? 5 : 1), 0);
+            scrollIndex_ = std::max(scrollIndex_ - (e == Event::PageDown ? 5 : 1), 0);
             return true;
         }
-        if (e == Event::End) { scroll_index_ = 0; return true; }
-        if (e == Event::Home) { scroll_index_ = max_offset; return true; }
+        if (e == Event::End) { scrollIndex_ = 0; return true; }
+        if (e == Event::Home) { scrollIndex_ = max_offset; return true; }
         return false;
     });
 
     // -- 右侧功能菜单 --
-    Bag* bag_ptr = static_cast<Bag*>(bag_.get());
-    auto button_phone = Button(" 我的手机 ", []{}, ButtonOption::Animated());
+    BagLayout* bagPtr = static_cast<BagLayout*>(bagLayout_.get());
+    PhoneLayout* phonePtr = static_cast<PhoneLayout*>(phoneLayout_.get());
+
+    auto button_phone = Button(" 我的手机 ", [phonePtr] { phonePtr->show(); }, ButtonOption::Animated());
     auto button_settings = Button(" 游戏设置 ", [&] { game_logic_.showGameSettings(); }, ButtonOption::Animated());
-    auto button_bag = Button("   背包  ", [bag_ptr] { bag_ptr->show(); }, ButtonOption::Animated());
+    auto button_bag = Button("   背包  ", [bagPtr] { bagPtr->show(); }, ButtonOption::Animated());
     auto button_schedule = Button(" 我的日程 ", []{}, ButtonOption::Animated());
     navigationContainer_ = Container::Vertical({
         button_phone,
@@ -143,42 +148,42 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
     });
 
     // -- 输入组件 --
-    command_input_component_ = Input(&command_input_str_, "输入指令或对话...", {
+    commandInputComponent_ = Input(&commandInputStr_, "输入指令或对话...", {
         .on_enter = [&] {
-            game_logic_.getDialog().processPlayerInput(command_input_str_);
-            command_input_str_.clear();
+            game_logic_.getDialog().processPlayerInput(commandInputStr_);
+            commandInputStr_.clear();
         }
     });
 
-    text_input_component_ = Input(&text_input_str_, "...", {
+    textInputComponent_ = Input(&textInputStr_, "...", {
         .on_enter = [&] {
             auto request_opt = game_logic_.getCurrentInputRequest();
             if (!request_opt) return;
             
             bool rule_matched = false;
             for (const auto& rule : request_opt->rules) {
-                if (rule.condition(text_input_str_)) {
-                    rule.action(game_logic_, text_input_str_);
+                if (rule.condition(textInputStr_)) {
+                    rule.action(game_logic_, textInputStr_);
                     rule_matched = true;
                     break;
                 }
             }
             if (!rule_matched && request_opt->on_text_submit_default) {
-                request_opt->on_text_submit_default(game_logic_, text_input_str_);
+                request_opt->on_text_submit_default(game_logic_, textInputStr_);
             }
-            text_input_str_.clear();
+            textInputStr_.clear();
         }
     });
 
-    choice_container_ = Container::Vertical({});
+    choiceContainer_ = Container::Vertical({});
 
     inputArea_ = Container::Tab(
         {
-            command_input_component_,
-            text_input_component_,
-            choice_container_,
+            commandInputComponent_,
+            textInputComponent_,
+            choiceContainer_,
         },
-        &selected_input_mode_
+        &selectedInputMode_
     );
 
     // --- [修改开始] ---
@@ -190,13 +195,14 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
     });
 
     // 使用 Container::Stacked 来管理主界面和背包层，确保背包也能接收事件
-    auto top_level_container = Container::Stacked({
+    auto topLevelContainer = Container::Stacked({
         main_game_container,
-        bag_
+        bagLayout_,
+        phoneLayout_,
     });
 
     // 将这个顶层容器作为 GameLayout 的子组件
-    Add(top_level_container);
+    Add(topLevelContainer);
     // --- [修改结束] ---
 }
 
@@ -206,31 +212,31 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
  * @details 负责根据当前游戏状态同步UI，并组合所有子组件来构建最终的界面布局。
  */
 Element GameLayout::Render() {
-    // --- [修改开始] ---
-    // 移除了此处错误的 if (bag_->isShowing()) return bag_->Render(); 逻辑
-    // --- [修改结束] ---
+
+    // -- 在每一帧的开始处，更新StoryController以驱动异步队列 --
+    game_logic_.getStoryController().update();
 
     // -- 状态同步：根据Game状态切换Tab的显示，并动态更新内容 --
     GameState state = game_logic_.getCurrentState();
-    auto request_opt = game_logic_.getCurrentInputRequest();
-    std::string input_prompt = " 指令 ";
+    auto requestOpt = game_logic_.getCurrentInputRequest();
+    std::string inputPrompt = " 指令 ";
 
     switch(state) {
         case GameState::AwaitingTextInput:
-            selected_input_mode_ = 1;
-            if (request_opt) input_prompt = request_opt->prompt;
+            selectedInputMode_ = 1;
+            if (requestOpt) inputPrompt = requestOpt->prompt;
             break;
         case GameState::AwaitingChoice:
-            selected_input_mode_ = 2;
-            if (request_opt) {
-                input_prompt = request_opt->prompt;
+            selectedInputMode_ = 2;
+            if (requestOpt) {
+                inputPrompt = requestOpt->prompt;
                 // 动态更新选项按钮
-                if (choice_container_->ChildCount() != request_opt->choices.size()) {
-                    choice_container_->DetachAllChildren();
-                    for (int i = 0; i < request_opt->choices.size(); ++i) {
-                         choice_container_->Add(
-                             Button(request_opt->choices[i], [i, choice = request_opt->choices[i], on_select = request_opt->on_choice_select] {
-                                 on_select(i, choice);
+                if (choiceContainer_->ChildCount() != requestOpt->choices.size()) {
+                    choiceContainer_->DetachAllChildren();
+                    for (int i = 0; i < requestOpt->choices.size(); ++i) {
+                         choiceContainer_->Add(
+                             Button(requestOpt->choices[i], [i, choice = requestOpt->choices[i], onSelect = requestOpt->onChoiceSelect] {
+                                 onSelect(i, choice);
                              }, ButtonOption::Animated())
                          );
                     }
@@ -238,11 +244,11 @@ Element GameLayout::Render() {
             }
             break;
         default: // GameState::InGame 或其他
-            selected_input_mode_ = 0;
+            selectedInputMode_ = 0;
             break;
     }
 
-    bool show_side_panels = (state == GameState::InGame);
+    bool showSidePanels = (state == GameState::InGame);
 
     // -- 布局组装 --
     auto header = hbox({
@@ -253,7 +259,7 @@ Element GameLayout::Render() {
 
     Elements left_children;
     left_children.push_back(interactiveMainView_->Render() | vscroll_indicator | yframe | flex);
-    if (show_side_panels) {
+    if (showSidePanels) {
         left_children.push_back(
             window(text(" 玩家状态 "),
                    hbox({
@@ -271,21 +277,30 @@ Element GameLayout::Render() {
     auto left_panel = vbox(left_children) | flex;
 
     Element rightPanel = emptyElement();
-    if (show_side_panels) {
+    if (showSidePanels) {
         rightPanel = window(text(" 功能菜单 "), navigationContainer_->Render()) | size(WIDTH, EQUAL, 22);
     }
 
     auto mainContent = hbox({ left_panel, rightPanel });
-    Element footer = window(text(input_prompt), inputArea_->Render());
+    Element footer = window(text(inputPrompt), inputArea_->Render());
 
     Element mainLayout = vbox({ header, mainContent | flex, footer });
 
-    Bag* bag_ptr = static_cast<Bag*>(bag_.get());
+    BagLayout* bagPtr = static_cast<BagLayout*>(bagLayout_.get());
     // 如果背包正在显示，使用 dbox 将背包界面叠加在主界面上。
-    if (bag_ptr && bag_ptr->isShowing()) {
+    if (bagPtr && bagPtr->isShowing()) {
         return dbox({
             mainLayout,
-            bag_->Render() // bag_->Render() 依然可以正常调用
+            bagLayout_->Render() // bag_->Render() 依然可以正常调用
+        });
+    }
+
+    // 同理背包
+    PhoneLayout* phonePtr = static_cast<PhoneLayout*>(phoneLayout_.get());
+    if (phonePtr && phonePtr->isShowing()) {
+        return dbox({
+            mainLayout,
+            phoneLayout_->Render()
         });
     }
 
