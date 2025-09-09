@@ -2,6 +2,7 @@
 #define STORYCONTROLLER_H
 
 #include "Types.h"
+#include <chrono>
 #include <map>
 #include <string>
 
@@ -32,6 +33,12 @@ public:
      */
     void processNodeByID(unsigned int dialogNodeID);
 
+    /**
+     * @brief 驱动异步剧情队列的核心更新函数。
+     * @details 此函数应在游戏的主循环中（例如每帧）被调用，以处理延迟、动画等非阻塞性事件。
+     */
+    void update();
+
 private:
     /**
      * @brief 真正处理DialogNode对象的内部函数。
@@ -47,6 +54,12 @@ private:
 
     Game& game_; ///< 对Game核心对象的引用。
     std::map<unsigned int, const DialogNode*> dialog_database_; ///< 存储所有对话节点的数据库。
+
+    // --- 剧情序列状态成员 ---
+    StorySequence active_sequence_;                     ///< 当前正在执行的剧情序列。
+    size_t sequence_step_ = 0;                          ///< 指向序列中当前步骤的索引。
+    std::chrono::steady_clock::time_point wait_until_;  ///< 如果当前是停顿步骤，记录需要等待到的时间点。
+    unsigned int pending_next_node_id_ = 0;             ///< 序列结束后的跳转ID
 };
 
 #endif // STORYCONTROLLER_H

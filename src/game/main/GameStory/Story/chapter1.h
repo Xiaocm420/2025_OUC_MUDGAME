@@ -5,8 +5,9 @@
 #include "../Story.h"
 #include "../../basic/Game.h"
 
-#include <string>
+#include <chrono>
 #include <map>
+#include <string>
 
 /* 对话id规则：8位数字，如 ABBCCDDD A 为章节数 BB 为章节的某个部分 CC 为场景 id，从 0 开始，指发生在哪个场景的对话
  * 选择id规则：9位数字，如 ABBCCDDDE 前8位同上，E为对话编号，从 0 开始
@@ -19,36 +20,47 @@
  */
 namespace Chapter1 {
 
-    inline DialogNode _00000001(00000001, UNKNOWN, "欢迎！这是你第一次进入这个游戏，来给你自己起个名字吧：");
+    inline DialogNode _00000001(00000001, "<UNKNOWN>", "欢迎！这是你第一次进入这个游戏，来给你自己起个名字吧：");
     
-    inline DialogNode _00000002(00000002, UNKNOWN, "<PLAYER_NAME>吗？嗯嗯，确实是个好名字呢，准备好醒来了吗？", {} , 3);
+    inline DialogNode _00000002(00000002, "<UNKNOWN>", "<PLAYER_NAME>吗？嗯嗯，确实是个好名字呢，准备好醒来了吗？", {} , 3);
     
-    inline const DialogNode _00000003(3, SYSTEM, "说：「是」或「否」\n（选择否将退出游戏！）", {
+    inline const DialogNode _00000003(3, "<SYSTEM>", "说：「是」或「否」\n（选择否将退出游戏！）", {
         Choice("是", 4), // 选择“是”，跳转到节点4
         Choice("否", 5), // 选择“否”，跳转到节点5
     });
     
-    inline const DialogNode _00000004(4, SYSTEM, "游戏正式开始！", {}, 6, 
+    inline const DialogNode _00000004(4, "<SYSTEM>", "游戏正式开始！", {}, 6, {
+        /**
+         * sequence 是一个vector
+         * // eg1: 停顿1秒，给玩家反应时间
+         * WaitAction{std::chrono::seconds(1)},
+         * // eg2: 玩家说话
+         * SpeakAction{PLAYER, "我这是……在哪？"},
+         * // eg3: 停顿500毫秒
+         * WaitAction{std::chrono::milliseconds(500)},
+         */
         // 附加动作：清理对话历史
-        [](Game& game) {
+        ExecuteAction{
+            [](Game& game) {
             game.getDialog().clearHistory();
+            }
         }
-    );
+    });
 
-    inline const DialogNode _00000005(5, SYSTEM, "下次再见。", {}, 0,
-        [](Game& game) {
-            game.getDialog().clearHistory();
-            game.exitGame();
-        }
+    inline const DialogNode _00000005(5, "<SYSTEM>", "下次再见。", {}, 0, {
+        ExecuteAction{
+            [](Game& game) {
+                game.getDialog().clearHistory();
+                game.exitGame();
+            }
+        }}
     );
     
-    inline DialogNode _00000006(6, UNKNOWN, "快醒醒！<PLAYER_NAME>！", {}, 0,
-        [](Game& game) {
-            game.getDialog().addMessage(PLAYER, "我这是……在哪？");
-            game.getDialog().addMessage("系统", "Hello world!");
-            game.getDialog().addMessage("系统", "Hello world!");
-        }
-    );
+    inline DialogNode _00000006(6, "<UNKNOWN>", "快醒醒！<PLAYER_NAME>！", {}, 0, {
+        SpeakAction{"<PLAYER_NAME>", "我这是......在哪？"},
+        WaitAction{std::chrono::seconds(3)},
+        SpeakAction{"<UNKNOWN>", "你醒了，<PLAYER_NAME>！"},
+    });
 
     /**
      * @brief 将本章节的所有对话节点注册到数据库中。

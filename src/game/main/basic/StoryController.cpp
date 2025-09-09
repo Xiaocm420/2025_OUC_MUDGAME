@@ -32,22 +32,8 @@ void StoryController::processNodeByID(unsigned int dialogNodeID) {
 void StoryController::processNode(const DialogNode* node) {
     if (!node) return;
 
-    // --- before: 占位符替换逻辑 ---
-    std::vector<std::string> processed = { node->who, node->content} ;
-    for (auto& str : processed) {
-        // <PLAYER_NAME> 占位符
-        std::string placeholder_1 = "<PLAYER_NAME>";
-        size_t pos = str.find(placeholder_1);
-        if (pos != std::string::npos) {
-            // 如果找到，用当前的玩家名替换它
-            str.replace(pos, placeholder_1.length(), game_.getPlayer().getName());
-        }
-        
-        // <xxx> 其他占位符
-    }
-
     // 步骤 1: 显示当前节点的对话内容
-    game_.getDialog().addMessage(processed.at(0), processed.at(1));
+    game_.getDialog().addMessage(node->who, node->content);
 
     // 步骤 2: 检查并处理当前节点的选项（交互式 & 线性）
     if (!node->choices.empty()) {
@@ -79,17 +65,72 @@ void StoryController::processNode(const DialogNode* node) {
                 this->processNodeByID(selectedChoice.nextNodeID);
             }
         );
-    }  else {
-        // --- 线性节点：按顺序处理动作和跳转 ---
-        
-        // 步骤 2a: 执行当前节点的 Action (如果存在)
-        if (node->action) {
-             node->action(game_);
+    } else {
+        pending_next_node_id_ = node->nextNodeID;   // 记录跳转ID
+        // --- 线性节点：启动序列，然后计划跳转 ---
+        if (!node->sequence.empty()) {
+            active_sequence_ = node->sequence;      // 将节点的序列复制到活动队列
+            sequence_step_ = 0;                     // 从第一步开始
+            wait_until_ = {};                       // 清理上一个等待计时器
+        } else {
+            // 如果没有序列，立即尝试跳转
+            update();
         }
+    }
+}
 
-        // 步骤 2b: 跳转到下一个节点 (如果存在)
-        if (node->nextNodeID != 0) {
-            processNodeByID(node->nextNodeID);
+void StoryController::update() {
+    // 检查是否正在等待
+    if (std::chrono::steady_clock::now() < wait_until_) {
+        return; // 等待时间未到，直接返回
+    }
+
+    if (active_sequence_.empty() || sequence_step_ >= active_sequence_.size()) {
+        // 序列为空或已执行完毕，检查是否有待处理的跳转
+        if (pending_next_node_id_ != 0) {
+            unsigned int next_id = pending_next_node_id_;
+            pending_next_node_id_ = 0; // 清理，防止重复跳转
+            processNodeByID(next_id);
+        }
+        return;
+    }
+
+    // 循环处理，直到遇到一个需要等待的步骤
+    while (sequence_step_ < active_sequence_.size()) {
+        const auto& step = active_sequence_[sequence_step_];
+        bool should_wait = false;
+
+        std::visit([&](auto&& arg) {
+            using T = std::decay_t<decltype(arg)>;
+            if constexpr (std::is_same_v<T, SpeakAction>) {
+                game_.getDialog().addMessage(arg.who, arg.content);
+            }
+            else if constexpr (std::is_same_v<T, WaitAction>) {
+                wait_until_ = std::chrono::steady_clock::now() + arg.duration;
+                should_wait = true;
+            }
+            else if constexpr (std::is_same_v<T, ExecuteAction>) {
+                if (arg.function) {
+                    arg.function(game_);
+                }
+            }
+        }, step);
+
+        sequence_step_++; // 移动到下一步
+
+        if (should_wait) {
+            return; // 如果是等待步骤，则退出update循环，等待下一帧
+        }
+    }
+
+    // 如果循环自然结束
+    if (sequence_step_ >= active_sequence_.size()) {
+        active_sequence_.clear();
+        // 再次检查跳转，确保序列最后一步执行完后能立即跳转
+        if (pending_next_node_id_ != 0) {
+            unsigned int next_id = pending_next_node_id_;
+            pending_next_node_id_ = 0;
+            processNodeByID(next_id);
         }
     }
 }

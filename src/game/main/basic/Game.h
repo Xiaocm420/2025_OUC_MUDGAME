@@ -100,10 +100,6 @@ private:
     ftxui::ScreenInteractive* screen_ = nullptr;            ///< 存储指向当前活动屏幕的指针。
 };
 
-static std::string SYSTEM = "系统";
-inline static std::string PLAYER; // 比较方便，以后可能有改名卡道具
-
 inline static const std::string VOICEOVER; // 旁白
-inline static const std::string UNKNOWN = "？？？";
 
 #endif // GAME_H

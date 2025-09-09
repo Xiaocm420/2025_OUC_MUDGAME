@@ -1,7 +1,8 @@
-#include "GameLayout.h"
 #include "Bag.h"
+#include "GameLayout.h"
 #include "../Game.h"
 #include "../Dialog.h"
+#include "../StoryController.h"
 #include "../../class/entity/Player.h"
 
 #include "FTXUI/component/screen_interactive.hpp"
@@ -209,6 +210,9 @@ Element GameLayout::Render() {
     // --- [修改开始] ---
     // 移除了此处错误的 if (bag_->isShowing()) return bag_->Render(); 逻辑
     // --- [修改结束] ---
+
+    // -- 在每一帧的开始处，更新StoryController以驱动异步队列 --
+    game_logic_.getStoryController().update();
 
     // -- 状态同步：根据Game状态切换Tab的显示，并动态更新内容 --
     GameState state = game_logic_.getCurrentState();
