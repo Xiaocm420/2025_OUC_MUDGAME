@@ -1,6 +1,10 @@
-#pragma once
+#ifndef GAME_VIEW_H
+#define GAME_VIEW_H
 
 #include <string>
+
+#include "FTXUI/component/component.hpp"
+#include "FTXUI/component/screen_interactive.hpp"
 
 // 告知 Game 类存在
 class Game;
@@ -11,12 +15,23 @@ public:
     explicit View(Game& game_logic);
 
     // 主菜单
-    void ShowMainMenu();
+    void showMainMenu();
 
     // 加载栏
-    void ShowLoadingScreen(const std::string& subtitle);
+    static void showLoadingScreen(const std::string& subtitle);
+
+    // 游戏界面
+    void showGameScreen();
+
+    // 游戏介绍
+    static void showGameIntroScreen();
+
+    // 主UI: 迁移至/src/game/basic/ui/GameLayout.h(.cpp)
+    // ftxui::Component makeGameLayout();
 
 private:
     // 保存 Game 对象的引用，以便在按钮点击时调用其方法
     Game& game_logic_;
 };
+
+#endif // GAME_VIEW_H
