@@ -118,7 +118,7 @@ void Game::requestChoice(const std::string& prompt,
     input_request_ = InputRequest{
         .prompt = prompt,
         .choices = choices,
-        .on_choice_select = std::move(on_select)
+        .onChoiceSelect = std::move(on_select)
     };
     setGameState(GameState::AwaitingChoice);
 }

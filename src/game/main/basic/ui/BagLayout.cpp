@@ -1,4 +1,4 @@
-#include "Bag.h"
+#include "BagLayout.h"
 #include "../Game.h" // 假设 Game.h 的路径
 #include "FTXUI/component/screen_interactive.hpp"
 #include "FTXUI/dom/elements.hpp"
@@ -8,7 +8,7 @@
 
 using namespace ftxui;
 
-Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
+BagLayout::BagLayout(Game& game_logic) : game_logic_(game_logic) {
     initializeItems();
 
     // --- 在构造函数中创建所有持久化组件 ---
@@ -74,18 +74,18 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
     Add(mainContainer_);
 }
 
-void Bag::initializeItems() {
+void BagLayout::initializeItems() {
     // 示例物品
     items_ = {};
         // TODO: 考虑放些初始物品
 }
 
-int Bag::getTotalPages() const {
+int BagLayout::getTotalPages() const {
     if (items_.empty()) return 1;
     return (items_.size() + itemsPerPage_ - 1) / itemsPerPage_;
 }
 
-Element Bag::Render() {
+Element BagLayout::Render() {
     if (!isShowing_) {
         return text("");
     }
@@ -167,21 +167,21 @@ Element Bag::Render() {
     return window(text(" 背包 ") | bold, mainLayout) | clear_under;
 }
 
-void Bag::show() {
+void BagLayout::show() {
     isShowing_ = true;
     selectedItemIndex_ = -1;
     currentPage_ = 0;
 }
 
-void Bag::hide() {
+void BagLayout::hide() {
     isShowing_ = false;
 }
 
-bool Bag::isShowing() const {
+bool BagLayout::isShowing() const {
     return isShowing_;
 }
 
-void Bag::setItemAmount(const int amount, Item* item) {
+void BagLayout::setItemAmount(const int amount, Item* item) {
     auto index = std::ranges::find(items_.begin(), items_.end(), item);
     if (index == items_.end()) {
         items_.push_back(item);
