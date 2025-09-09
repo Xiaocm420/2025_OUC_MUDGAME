@@ -1,6 +1,7 @@
 #include "GameLayout.h"
 #include "BagLayout.h"
 #include "PhoneLayout.h"
+#include "MapLayout.h"
 #include "../Game.h"
 #include "../Dialog.h"
 #include "../StoryController.h"
@@ -17,11 +18,18 @@ using namespace ftxui;
  * @details 在此初始化所有UI组件，并设置它们的交互逻辑。
  *          关键在于，所有组件都作为成员变量，保证了其生命周期与GameLayout实例一致。
  */
-GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic), 
+GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
                                            animationStartTime_(std::chrono::steady_clock::now()) {
     // 初始化背包组件
     bagLayout_ = Make<BagLayout>(game_logic_);
-    phoneLayout_ = Make<PhoneLayout>(game_logic_);
+    mapLayout_ =  Make<MapLayout>(game_logic_);
+
+    MapLayout* mapPtr = static_cast<MapLayout*>(mapLayout_.get());
+    phoneLayout_ = Make<PhoneLayout>(game_logic_, [this, mapPtr] {
+    // 当点击地图按钮时：先隐藏手机，再显示地图
+        static_cast<PhoneLayout*>(phoneLayout_.get())->hide();
+        mapPtr->show();
+    });
 
     // -- 对话历史渲染器 --
     auto mainViewRenderer = Renderer([this] {
@@ -45,7 +53,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         if (!messages.empty() && currentMessageIndex_ < messages.size()) {
             const auto& current_msg = messages[currentMessageIndex_];
             auto content_size = Utf8ToGlyphs(current_msg.content).size();
-            
+
             // 计算完成当前消息动画所需的总时间（打字时间 + 结束后延迟）
             auto typing_duration = std::chrono::milliseconds(content_size * 20);
             auto post_delay = std::chrono::milliseconds(500);
@@ -69,7 +77,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         Elements messageElements;
         size_t total = messages.size();
         size_t end = total > static_cast<size_t>(scrollIndex_) ? total - scrollIndex_ : 0;
-        
+
         for (size_t i = 0; i < end; ++i) {
             // 只处理和渲染那些已经播放完毕或正在播放的消息。
             // 完全跳过未来的消息，避免它们的 "who" 提前显示。
@@ -111,7 +119,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         if (!messageElements.empty()) {
             messageElements.back() |= focus;
         }
-        
+
         return window(text(" 对话记录 "), vbox(messageElements) | flex | yframe);
     });
 
@@ -159,7 +167,7 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         .on_enter = [&] {
             auto request_opt = game_logic_.getCurrentInputRequest();
             if (!request_opt) return;
-            
+
             bool rule_matched = false;
             for (const auto& rule : request_opt->rules) {
                 if (rule.condition(textInputStr_)) {
@@ -199,11 +207,11 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
         main_game_container,
         bagLayout_,
         phoneLayout_,
+        mapLayout_,
     });
 
     // 将这个顶层容器作为 GameLayout 的子组件
     Add(topLevelContainer);
-    // --- [修改结束] ---
 }
 
 
@@ -263,14 +271,11 @@ Element GameLayout::Render() {
         left_children.push_back(
             window(text(" 玩家状态 "),
                    hbox({
-                       text(" 生命值 ") | color(Color::Green),
-                       gauge(game_logic_.getPlayer().getHealth()) | flex | color(Color::Green),
+                       text("生命值: " + std::to_string(game_logic_.getPlayer().getHealth())) | color(Color::Green) | flex,
                        separator(),
-                       text(" 疲劳值 ") | color(Color::Yellow),
-                       gauge(game_logic_.getPlayer().getFatigue()) | flex | color(Color::Yellow),
+                       text("疲劳值: " + std::to_string(game_logic_.getPlayer().getFatigue())) | color(Color::Yellow) | flex,
                        separator(),
-                       text(" 饥饿值 ") | color(Color::RedLight),
-                       gauge(game_logic_.getPlayer().getHunger()) | flex | color(Color::RedLight),
+                       text("饥饿值: " + std::to_string(game_logic_.getPlayer().getHunger())) | color(Color::RedLight) | flex
                    }))
         );
     }
@@ -290,8 +295,7 @@ Element GameLayout::Render() {
     // 如果背包正在显示，使用 dbox 将背包界面叠加在主界面上。
     if (bagPtr && bagPtr->isShowing()) {
         return dbox({
-            mainLayout,
-            bagLayout_->Render() // bag_->Render() 依然可以正常调用
+            bagLayout_->Render()
         });
     }
 
@@ -299,14 +303,18 @@ Element GameLayout::Render() {
     PhoneLayout* phonePtr = static_cast<PhoneLayout*>(phoneLayout_.get());
     if (phonePtr && phonePtr->isShowing()) {
         return dbox({
-            mainLayout,
             phoneLayout_->Render()
         });
     }
 
-    // 否则，只渲染主界面 (移除了原先重复的 vbox({...}) 创建)
+    MapLayout* mapPtr = static_cast<MapLayout*>(mapLayout_.get());
+    if (mapPtr && mapPtr->isShowing()) {
+        return dbox({
+            mapLayout_->Render()
+        });
+    }
+
     return mainLayout;
-    // --- [修改结束] ---
 }
 
 GameLayout::~GameLayout() = default;

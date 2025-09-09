@@ -43,7 +43,7 @@ namespace Chapter1 {
         ExecuteAction{
             [](Game& game) {
                 game.getDialog().clearHistory();
-                game.getPlayer().setLocation("拳击馆外");
+                game.getPlayer().setLocation("拳击馆");
             }
         }
     });

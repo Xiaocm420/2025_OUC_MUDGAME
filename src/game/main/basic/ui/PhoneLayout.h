@@ -13,10 +13,8 @@ class Game; // 前向声明
  */
 class PhoneLayout : public ftxui::ComponentBase {
 public:
-    // 构造函数
-    explicit PhoneLayout(Game& game_logic);
+    explicit PhoneLayout(Game& game_logic, std::function<void()> onMapClick);
 
-    // 重写的Render方法
     ftxui::Element Render() override;
 
     // 控制显示和隐藏的方法
@@ -34,6 +32,8 @@ private:
     ftxui::Component buttonInfo_;
     ftxui::Component buttonHome_;
     ftxui::Component mainContainer_;
+
+    std::function<void()> on_map_click_; // 地图按钮
 };
 
 #endif //INC_2025_OUC_MUDGAME_PHONELAYOUT_H

@@ -10,7 +10,7 @@ using namespace ftxui;
 
 // --- 辅助函数：创建应用图标 ---
 // 为了代码复用和整洁，我们创建一个函数专门生成图标按钮的样式
-Component createAppButton(const std::string& icon, const std::string& label, std::function<void()> on_click) {
+Component createAppButton(const std::string& icon, const std::string& label, std::function<void()> onClick) {
     auto option = ButtonOption();
     option.transform = [=](const EntryState& s) {
         // 图标和文字的垂直布局
@@ -32,25 +32,25 @@ Component createAppButton(const std::string& icon, const std::string& label, std
         return content | size(WIDTH, EQUAL, 12) | size(HEIGHT, EQUAL, 5) | border;
     };
 
-    return Button("", on_click, option);
+    return Button("", onClick, option);
 }
 
 /**
  * @brief PhoneLayout的构造函数。
  * @details 在此初始化所有UI组件，并将它们添加到容器中以处理事件。
  */
-PhoneLayout::PhoneLayout(Game& game_logic) : game_logic_(game_logic) {
-    // ---- 创建所有可交互组件 ----
+PhoneLayout::PhoneLayout(Game& game_logic, std::function<void()> onMapClick)
+    : game_logic_(game_logic), on_map_click_(onMapClick) {
 
-    // 1. 使用辅助函数创建应用按钮
-    buttonMap_ = createAppButton(" 🗺️ ", "地图", [] { /* TODO: 地图逻辑 */ });
-    buttonShop_ = createAppButton(" 🛒 ", "网购平台", [] { /* TODO: 网购逻辑 */ });
-    buttonInfo_ = createAppButton(" 👤 ", "我的信息", [] { /* TODO: 信息逻辑 */ });
+    // 应用按钮
+    buttonMap_ = createAppButton(" 🗺 ", "地图", on_map_click_);
+    buttonShop_ = createAppButton("🛒", "网购平台", [] { /* TODO: 网购逻辑 */ });
+    buttonInfo_ = createAppButton("👤", "我的信息", [] { /* TODO: 信息逻辑 */ });
 
-    // 2. Home键 (退出按钮)，使用更现代的样式
+    // Home键 (退出按钮)
     buttonHome_ = Button(" ○ ", [this] { hide(); }, ButtonOption::Ascii());
 
-    // 3. 将所有按钮添加到一个容器中，这是确保它们能交互的关键
+    // 将所有按钮添加到一个容器中，这是确保它们能交互的关键
     mainContainer_ = Container::Horizontal({ // 使用Horizontal因为应用图标是横向排列的
         buttonMap_,
         buttonShop_,
