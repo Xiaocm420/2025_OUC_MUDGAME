@@ -59,12 +59,12 @@ namespace Chapter1 {
 
     inline DialogNode _00000006(6, "", "我从小有一个梦想，就是当上拳王", {}, 0, {
         SpeakAction{"", "我呆呆的看着拳击馆里不断挥拳的几个正在训练的拳击手，心中羡慕不已"},
-        SpeakAction{"UNKNOWN", "嘿，小伙子，你看什么呢"},
+        SpeakAction{"<UNKNOWN>", "嘿，小伙子，你看什么呢"},
         SpeakAction{"<PLAYER_NAME>", "我...我也想练拳...只可惜我的财力不足，不足以支撑我学这个..."},
         SpeakAction{"", "他看着我失望的神情，不由动了容，他上下打量着我的身体，心里嘀咕着什么..."},
-        SpeakAction{"UNKNOWN", "我看你身材不错嘛，蛮结实的，你以前是做什么工作的？"},
+        SpeakAction{"<UNKNOWN>", "我看你身材不错嘛，蛮结实的，你以前是做什么工作的？"},
         SpeakAction{"<PLAYER_NAME>", "以前当过几年小兵，期间什么荣誉都没得到，也就身体好一些"},
-        SpeakAction{"UNKNOWN", "我看你体格不错，看上去有些打拳天赋，想在拳击界里混出个名堂吗？"},
+        SpeakAction{"<UNKNOWN>", "我看你体格不错，看上去有些打拳天赋，想在拳击界里混出个名堂吗？"},
         SpeakAction{"弗兰克", "你可以叫我弗兰克，这里的万事通。我看你骨骼精奇，就来我们这里练拳吧"},
         SpeakAction{"<PLAYER_NAME>", "可...我并没有钱呀"},
         SpeakAction{"弗兰克", "那有什么，这点小钱，我帮你垫了，这是我的名片，以后随时联系"},
