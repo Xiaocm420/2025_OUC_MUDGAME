@@ -3,6 +3,7 @@
 #include "PhoneLayout.h"
 #include "../Game.h"
 #include "../Dialog.h"
+#include "../StoryController.h"
 #include "../../class/entity/Player.h"
 
 #include "FTXUI/component/screen_interactive.hpp"
@@ -211,6 +212,9 @@ GameLayout::GameLayout(Game& game_logic) : game_logic_(game_logic),
  * @details 负责根据当前游戏状态同步UI，并组合所有子组件来构建最终的界面布局。
  */
 Element GameLayout::Render() {
+
+    // -- 在每一帧的开始处，更新StoryController以驱动异步队列 --
+    game_logic_.getStoryController().update();
 
     // -- 状态同步：根据Game状态切换Tab的显示，并动态更新内容 --
     GameState state = game_logic_.getCurrentState();
