@@ -1,0 +1,54 @@
+[33m1d697ae[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: implement Fridge and enhance Player class with food management
+[33m1d041fa[m Merge pull request #1 from Xiaocm420/Xiaocm420-patch-item
+[33m569b6b3[m improve: reset the amount of player init fatigue, healthiness location attitude
+[33m911ebf5[m[33m ([m[1;31morigin/Xiaocm420-patch-item[m[33m)[m Merge branch 'Yaosanqi137:main' into Xiaocm420-patch-item
+[33m013f905[m feat: add bag UI preview
+[33ma65263b[m Merge pull request #17 from Anyeling0620/Anyeling_version2.2
+[33mb89f4b7[m update Skill.h and Skill.cpp
+[33m41e6ef7[m feat: delete Abstract.h and Abstract.cpp, update Skill.cpp and Skill.h
+[33m79bd701[m feat: update Skill.cpp and Skill.h
+[33m38d69c0[m Merge branch 'Yaosanqi137:main' into skill
+[33m95edb08[m Merge pull request #16 from Cccc-owo/new
+[33mc8da3de[m feat: add a name easter egg and make name accept 2-10 chars
+[33m7faad00[m fix: message typing animation also enhance placeholder replacement and fix node process
+[33m70c8e97[m style: format include guard using #ifndef & other style tweaks
+[33m45427c4[m Merge branch 'Yaosanqi137:main' into skill
+[33mdae6176[m refactor: Implement state-driven UI and decoupled service architecture
+[33m5a5e266[m feat: make c++20 happy ref:(warning: implicit capture of 'this' via '[=]' is deprecated in C++20 [-Wdeprecated])
+[33m85dc701[m feat: use unique_ptr to replace some ptr
+[33m1375659[m feat: improve new start scene but still have some issue
+[33m1204c8f[m feat: improve dialog system
+[33mc498b39[m docs: add API docs and screenshot
+[33m7e04429[m feat: add build script
+[33m8d01f99[m feat: improve game dialog function
+[33m5080d7b[m Merge branch 'Yaosanqi137:main' into Anyeling_version2.2
+[33m1e6b3ba[m Merge pull request #12 from Cccc-owo/player
+[33m3e91081[m Update Skill.cpp
+[33m81d3a97[m 删除了原本的抽象类，全部实例将直接由Skill产生，增加了Skill.h和Skill.cpp
+[33mcc7d5e3[m chore: merge branch 'main' into player
+[33mbee1947[m feat: add game introduction view
+[33m86f06b0[m refactor: refine the entities' class
+[33m8dbf412[m Create Class item
+[33m2f5e553[m feat: refine class Player
+[33ma093b92[m feat: add configuration template
+[33m08a3fdf[m style: add the template of saves files
+[33m2c41a06[m refactor: use FTXUI to replace SceneManager and Terminal
+[33m9ed15c1[m Merge pull request #6 from Cccc-owo/actions
+[33ma6712b8[m ci: init cmake test
+[33m5f1af26[m Merge pull request #4 from Cccc-owo/new
+[33m6224d92[m perf: use std::vector to make copilot happy
+[33m8a4b1ad[m refactor: make the Scene multi-layer display 细节： - 增强 SceneManager 对 Scene 的生命周期管理 - 初始化一个欢迎界面 - 提供一些方便的绘制函数在 SceneBase 中
+[33mba52f21[m Merge pull request #3 from Cccc-owo/gitignore
+[33m628c20d[m fix: Player::move() and make ... ... Player player a reference in NormalScene::processImmediateKey
+[33m1d0ffb9[m feat: remove useless shared_ptr in NormalScene.h
+[33m132f859[m chore: add .gitignore
+[33m8fdc018[m feat: init the basic architecture there is still a lot to do with the architecture
+[33m97ef591[m build: update CMakeLists.txt
+[33m2505a88[m chore: import toml++ lib
+[33m4b68af4[m feat: init the project
+[33m2b2eea6[m Merge remote-tracking branch 'origin/main'
+[33mb59f9e7[m feat: update CMakeLists.txt
+[33m38eb14f[m Merge pull request #2 from Cccc-owo/patch-1
+[33m33e991a[m docs: update README
+[33md2c0978[m docs: add some reference
+[33m991f1a9[m Initial commit

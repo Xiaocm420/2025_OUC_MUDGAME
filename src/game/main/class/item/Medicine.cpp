@@ -1,44 +1,38 @@
+
 #include "Medicine.h"
-#include<string>
-#include<iostream>
 
-using namespace std;
-// Fridge to store food (max 7 per type)
+// Medicine
+Medicine::Medicine(const string& name, int price) : name_(name), price_(price) {}
+Medicine::~Medicine() = default;
+const string& Medicine::getName() const { return name_; }
+int Medicine::getPrice() const { return price_; }
 
-class Player {
-public:
-    Stats stats;
-    // Drugstore items are not stored, used immediately
-    void buy_and_use_medicine(Medicine* med) {
-        if (stats.money >= med->price) {
-            med->use(stats);
-            stats.money -= med->price;
-            cout << "Used " << med->name << endl;
-        } else {
-            cout << "Not enough money." << endl;
-        }
-    }
-    
-    void show_stats() {
-        cout << "Stats: BV=" << stats.blood_volume
-             << " SL=" << stats.satiety_level
-             << " ST=" << stats.stamina
-             << " STR=" << stats.strength
-             << " AGI=" << stats.agility
-             << " SP=" << stats.skill_point
-             << " Money=" << stats.money << endl;
-    }
-};
+// RecoveryMedication
+RecoveryMedication::RecoveryMedication() : Medicine("Recovery Medication", 50) {}
+void RecoveryMedication::use(Player::Stats& stats) {
+    stats.blood_volume = 100;
+}
 
-Player p;
-    p.show_stats();
+// StrengthEnhancedMedicine
+StrengthEnhancedMedicine::StrengthEnhancedMedicine() : Medicine("Strength Enhanced Medicine", 200) {}
+void StrengthEnhancedMedicine::use(Player::Stats& stats) {
+    stats.strength += 1;
+}
 
-    
-    // Simulate buying and using drugs
-    p.buy_and_use_medicine(new RecoveryMedication());
-    p.buy_and_use_medicine(new StrengthEnhancedMedicine());
-    p.buy_and_use_medicine(new SkillPointBuffMedicine());
+// StaminaEnhancedMedicine
+StaminaEnhancedMedicine::StaminaEnhancedMedicine() : Medicine("Stamina Enhanced Medicine", 200) {}
+void StaminaEnhancedMedicine::use(Player::Stats& stats) {
+    stats.stamina += 1;
+}
 
-    p.show_stats();
+// AgilityEnhancedMedicine
+AgilityEnhancedMedicine::AgilityEnhancedMedicine() : Medicine("Agility Enhanced Medicine", 200) {}
+void AgilityEnhancedMedicine::use(Player::Stats& stats) {
+    stats.agility += 1;
+}
 
-    return 0;
+// SkillPointBuffMedicine
+SkillPointBuffMedicine::SkillPointBuffMedicine() : Medicine("Skill Point Buff Medicine", 100) {}
+void SkillPointBuffMedicine::use(Player::Stats& stats) {
+    stats.skill_point += 1;
+}

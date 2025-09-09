@@ -1,82 +1,62 @@
+
 #ifndef FOOD_H
 #define FOOD_H
 
-// Stats for a player
-struct Stats {
-    int blood_volume ;
-    int satiety_level ;
-    int stamina ;
-    int strength ;
-    int agility ;
-    int skill_point ;
-    int money ;
-};
+#include <string>
+#include "../../entity/Player.h"
+using std::string;
 
-// Base class
-class Item {
-public:
-    string name;
-    int price;
-    Item(string n, int p) : name(n), price(p) {}
-    virtual void use(Stats& stats) = 0;
-    virtual ~Item() {}
-};
-
-// Food base
+// 食品基类
 class Food : public Item {
 public:
-    Food(string n, int p) : Item(n, p) {}
-    virtual void use(Stats& stats) override {}
+    explicit Food(const string& name, int price);
+    virtual ~Food();
+
+    // 获取食品名称
+    const string& getName() const;
+    // 获取价格
+    int getPrice() const;
+
+    // 食品使用效果
+    virtual void use(Player::Stats& stats) = 0;
+
+protected:
+    string name_;
+    int price_;
 };
 
-// Store Foods
+// 便利店食品
 class Meat : public Food {
 public:
-    Meat() : Food("Meat", 20) {}
-    void use(Stats& stats) override {
-        stats.blood_volume += 10;
-        stats.satiety_level += 40;
-    }
+    Meat();
+    void use(Player::Stats& stats) override;
 };
 class SparklingWater : public Food {
 public:
-    SparklingWater() : Food("Sparkling Water", 6) {}
-    void use(Stats& stats) override {
-        stats.satiety_level += 9;
-    }
+    SparklingWater();
+    void use(Player::Stats& stats) override;
 };
 class EnergyDrink : public Food {
 public:
-    EnergyDrink() : Food("Energy Drink", 14) {}
-    void use(Stats& stats) override {
-        stats.satiety_level += 5;
-        stats.stamina += 10;
-    }
+    EnergyDrink();
+    void use(Player::Stats& stats) override;
 };
 class FrozenPizza : public Food {
 public:
-    FrozenPizza() : Food("Frozen Pizza", 9) {}
-    void use(Stats& stats) override {
-        stats.blood_volume += 10;
-        stats.satiety_level += 17;
-    }
+    FrozenPizza();
+    void use(Player::Stats& stats) override;
 };
 
-// Fitness Center Foods
+// 健身房食品
 class ChocolateBar : public Food {
 public:
-    ChocolateBar() : Food("Chocolate Bar", 12) {}
-    void use(Stats& stats) override {
-        stats.satiety_level += 5;
-        stats.stamina += 5;
-    }
+    ChocolateBar();
+    void use(Player::Stats& stats) override;
 };
 class ProteinBar : public Food {
 public:
-    ProteinBar() : Food("Protein Bar", 18) {}
-    void use(Stats& stats) override {
-        stats.satiety_level += 15;
-    }
+    ProteinBar();
+    void use(Player::Stats& stats) override;
 };
 
-#endif // MUDGAME_FOOD_H
+#endif // FOOD_H
