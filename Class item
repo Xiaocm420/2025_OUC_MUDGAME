@@ -1,0 +1,242 @@
+#include <iostream>
+#include <string>
+#include <map>
+using namespace std;
+
+// Stats for a player
+struct Stats {
+    int blood_volume = 100;
+    int satiety_level = 100;
+    int stamina = 100;
+    int strength = 10;
+    int agility = 10;
+    int skill_point = 0;
+    int money = 1000;
+};
+
+// Base class
+class Item {
+public:
+    string name;
+    int price;
+    Item(string n, int p) : name(n), price(p) {}
+    virtual void use(Stats& stats) = 0;
+    virtual ~Item() {}
+};
+
+// Food base
+class Food : public Item {
+public:
+    Food(string n, int p) : Item(n, p) {}
+    virtual void use(Stats& stats) override {}
+};
+
+// Medicine base
+class Medicine : public Item {
+public:
+    Medicine(string n, int p) : Item(n, p) {}
+    virtual void use(Stats& stats) override {}
+};
+
+// Store Foods
+class Meat : public Food {
+public:
+    Meat() : Food("Meat", 20) {}
+    void use(Stats& stats) override {
+        stats.blood_volume += 10;
+        stats.satiety_level += 40;
+    }
+};
+class SparklingWater : public Food {
+public:
+    SparklingWater() : Food("Sparkling Water", 6) {}
+    void use(Stats& stats) override {
+        stats.satiety_level += 9;
+    }
+};
+class EnergyDrink : public Food {
+public:
+    EnergyDrink() : Food("Energy Drink", 14) {}
+    void use(Stats& stats) override {
+        stats.satiety_level += 5;
+        stats.stamina += 10;
+    }
+};
+class FrozenPizza : public Food {
+public:
+    FrozenPizza() : Food("Frozen Pizza", 9) {}
+    void use(Stats& stats) override {
+        stats.blood_volume += 10;
+        stats.satiety_level += 17;
+    }
+};
+
+// Fitness Center Foods
+class ChocolateBar : public Food {
+public:
+    ChocolateBar() : Food("Chocolate Bar", 12) {}
+    void use(Stats& stats) override {
+        stats.satiety_level += 5;
+        stats.stamina += 5;
+    }
+};
+class ProteinBar : public Food {
+public:
+    ProteinBar() : Food("Protein Bar", 18) {}
+    void use(Stats& stats) override {
+        stats.satiety_level += 15;
+    }
+};
+
+// DrugStore Medicines
+class RecoveryMedication : public Medicine {
+public:
+    RecoveryMedication() : Medicine("Recovery Medication", 50) {}
+    void use(Stats& stats) override {
+        stats.blood_volume = 100;
+    }
+};
+class StrengthEnhancedMedicine : public Medicine {
+public:
+    StrengthEnhancedMedicine() : Medicine("Strength Enhanced Medicine", 200) {}
+    void use(Stats& stats) override {
+        stats.strength += 1;
+        // Ability decrease speed logic in main or player class
+    }
+};
+class StaminaEnhancedMedicine : public Medicine {
+public:
+    StaminaEnhancedMedicine() : Medicine("Stamina Enhanced Medicine", 200) {}
+    void use(Stats& stats) override {
+        stats.stamina += 1;
+    }
+};
+class AgilityEnhancedMedicine : public Medicine {
+public:
+    AgilityEnhancedMedicine() : Medicine("Agility Enhanced Medicine", 200) {}
+    void use(Stats& stats) override {
+        stats.agility += 1;
+    }
+};
+class SkillPointBuffMedicine : public Medicine {
+public:
+    SkillPointBuffMedicine() : Medicine("Skill Point Buff Medicine", 100) {}
+    void use(Stats& stats) override {
+        stats.skill_point += 1;
+    }
+};
+
+// Fridge to store food (max 7 per type)
+class Fridge {
+    map<string, int> storage;
+    map<string, Food*> food_types;
+    static const int MAX_PER_TYPE = 7;
+public:
+    Fridge() {
+        food_types["Meat"] = new Meat();
+        food_types["Sparkling Water"] = new SparklingWater();
+        food_types["Energy Drink"] = new EnergyDrink();
+        food_types["Frozen Pizza"] = new FrozenPizza();
+        food_types["Chocolate Bar"] = new ChocolateBar();
+        food_types["Protein Bar"] = new ProteinBar();
+    }
+    bool add(string name) {
+        if (storage[name] < MAX_PER_TYPE) {
+            storage[name]++;
+            return true;
+        }
+        return false;
+    }
+    bool use(string name, Stats& stats) {
+        if (storage[name] > 0) {
+            food_types[name]->use(stats);
+            storage[name]--;
+            return true;
+        }
+        return false;
+    }
+    void print() {
+        cout << "Fridge contents:\n";
+        for (auto& p : storage) {
+            cout << p.first << ": " << p.second << endl;
+        }
+    }
+    ~Fridge() {
+        for (auto& p : food_types) delete p.second;
+    }
+};
+
+class Player {
+public:
+    Stats stats;
+    Fridge fridge;
+    // Drugstore items are not stored, used immediately
+    void buy_and_store_food(Food* food) {
+        if (stats.money >= food->price) {
+            if (fridge.add(food->name)) {
+                stats.money -= food->price;
+                cout << "Bought and stored " << food->name << endl;
+            } else {
+                cout << "Fridge full for " << food->name << endl;
+            }
+        } else {
+            cout << "Not enough money." << endl;
+        }
+    }
+    void buy_and_use_medicine(Medicine* med) {
+        if (stats.money >= med->price) {
+            med->use(stats);
+            stats.money -= med->price;
+            cout << "Used " << med->name << endl;
+        } else {
+            cout << "Not enough money." << endl;
+        }
+    }
+    void use_food(string name) {
+        if (!fridge.use(name, stats)) {
+            cout << "No " << name << " in fridge." << endl;
+        } else {
+            cout << "Used " << name << endl;
+        }
+    }
+    void show_stats() {
+        cout << "Stats: BV=" << stats.blood_volume
+             << " SL=" << stats.satiety_level
+             << " ST=" << stats.stamina
+             << " STR=" << stats.strength
+             << " AGI=" << stats.agility
+             << " SP=" << stats.skill_point
+             << " Money=" << stats.money << endl;
+    }
+};
+
+int main() {
+    Player p;
+    p.show_stats();
+
+    // Simulate buying food from store
+    p.buy_and_store_food(new Meat());
+    p.buy_and_store_food(new SparklingWater());
+    p.buy_and_store_food(new EnergyDrink());
+    p.buy_and_store_food(new FrozenPizza());
+
+    // Simulate buying food from fitness center
+    p.buy_and_store_food(new EnergyDrink());
+    p.buy_and_store_food(new ChocolateBar());
+    p.buy_and_store_food(new ProteinBar());
+
+    // Simulate using food
+    p.use_food("Meat");
+    p.use_food("Sparkling Water");
+    p.use_food("Energy Drink");
+    p.fridge.print();
+
+    // Simulate buying and using drugs
+    p.buy_and_use_medicine(new RecoveryMedication());
+    p.buy_and_use_medicine(new StrengthEnhancedMedicine());
+    p.buy_and_use_medicine(new SkillPointBuffMedicine());
+
+    p.show_stats();
+
+    return 0;
+}
