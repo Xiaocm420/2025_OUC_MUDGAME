@@ -1,7 +1,7 @@
 #include "Player.h"
 
-Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(100), strength(1),
-                   stamina(1), agility(1), hunger(100), fatigue(100), money(1000), location("？？？") {
+Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(80), strength(1),
+                   stamina(1), agility(1), hunger(100), fatigue(80), money(1000), location("???") {
 }
 
 // TODO: 保存数据
