@@ -105,3 +105,16 @@ void Player::setMinStamina(double value) {
 void Player::setMinAgility(double value) {
     minAgility = value;
 }
+
+// 获取最低属性值(力量，耐力，敏捷)
+double Player::getMinStrength() const {
+    return minStrength;
+}
+
+double Player::getMinStamina() const {
+    return minStamina;
+}
+
+double Player::getMinAgility() const {
+    return minAgility;
+}
