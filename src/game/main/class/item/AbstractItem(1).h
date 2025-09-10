@@ -13,7 +13,7 @@ public:
 	// 获取物品价格
 	virtual int getPrice() const = 0;
 	// 使用物品
-	virtual void use(Player::Stats& stats) = 0;
+	virtual void use(Player& user) = 0;
 };
 
 #endif // ABSTRACTITEM_H
