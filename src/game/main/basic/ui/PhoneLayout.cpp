@@ -5,6 +5,7 @@
 #include <chrono>
 #include <ctime>
 #include <iomanip>
+#include "../GameTime.h"
 
 using namespace ftxui;
 
@@ -73,11 +74,13 @@ Element PhoneLayout::Render() {
     }
 
     // --- 模拟手机状态栏 ---
-    // 获取当前时间
-    auto now = std::chrono::system_clock::now();
-    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+    // 获取游戏内时间
+    unsigned int gameHour = GameTime::getHour();
+    unsigned int gameMinute = GameTime::getMinute();
+
     std::stringstream ss;
-    ss << std::put_time(std::localtime(&in_time_t), "%H:%M");
+    ss << std::setw(2) << std::setfill('0') << gameHour << ":"
+       << std::setw(2) << std::setfill('0') << gameMinute;
     std::string timeStr = ss.str();
 
     auto statusBar = hbox({

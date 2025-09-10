@@ -4,14 +4,17 @@
 #include "View.h"
 #include "../class/entity/Player.h"
 #include "../GameStory/GameProcess.h"
+#include "GameTime.h"
 
 #include <iostream>
 
-Game::Game() : current_state_(GameState::MainMenu)  {
+Game::Game() : currentState_(GameState::MainMenu)  {
     view_ = std::make_unique<View>(*this);
     dialog_ = std::make_unique<Dialog>(*this);
     player_ = std::make_unique<Player>(*this);
-    story_controller_ = std::make_unique<StoryController>(*this);
+    storyController_ = std::make_unique<StoryController>(*this);
+
+    GameTime(); // 初始化游戏时间
 }
 
 Game::~Game() {
@@ -75,7 +78,7 @@ Player& Game::getPlayer() const {
 }
 
 StoryController& Game::getStoryController() const {
-    return *story_controller_;
+    return *storyController_;
 }
 
 View& Game::getView() const {
@@ -84,41 +87,41 @@ View& Game::getView() const {
 
 // --- 状态管理实现 ---
 void Game::setGameState(GameState new_state) {
-    current_state_ = new_state;
+    currentState_ = new_state;
 }
 
 GameState Game::getCurrentState() const {
-    return current_state_;
+    return currentState_;
 }
 
 const std::optional<InputRequest>& Game::getCurrentInputRequest() const {
-    return input_request_;
+    return inputRequest_;
 }
 
 void Game::clearInputRequest() {
-    input_request_.reset();
+    inputRequest_.reset();
     setGameState(GameState::InGame);
 }
 
 // --- 输入请求接口实现 ---
 void Game::requestTextInput(const std::string& prompt, 
                             const std::vector<InputRule>& rules, 
-                            TextInputAction on_submit_default) {
-    input_request_ = InputRequest{
+                            TextInputAction onSubmitDefault) {
+    inputRequest_ = InputRequest{
         .prompt = prompt,
         .rules = rules,
-        .on_text_submit_default = std::move(on_submit_default)
+        .onTextSubmitDefault = std::move(onSubmitDefault)
     };
     setGameState(GameState::AwaitingTextInput);
 }
 
 void Game::requestChoice(const std::string& prompt, 
                          const std::vector<std::string>& choices, 
-                         std::function<void(int, const std::string&)> on_select) {
-    input_request_ = InputRequest{
+                         std::function<void(int, const std::string&)> onSelect) {
+    inputRequest_ = InputRequest{
         .prompt = prompt,
         .choices = choices,
-        .onChoiceSelect = std::move(on_select)
+        .onChoiceSelect = std::move(onSelect)
     };
     setGameState(GameState::AwaitingChoice);
 }
