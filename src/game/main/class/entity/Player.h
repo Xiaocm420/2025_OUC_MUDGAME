@@ -33,6 +33,7 @@ public:
     [[nodiscard]] double getHealth() const;             // 血量
     [[nodiscard]] double getEnergy() const;             // 体力槽
 
+
     // 更改属性
     void addHealthiness(double value);                  // 健康度
     void addStrength(double value);                     // 力量
@@ -41,6 +42,11 @@ public:
     void addHunger(double value);                       // 饱食度
     void addFatigue(double value);                      // 疲劳值
     void addSavings(double value);                      // 积蓄
+
+    // 设置最低属性值
+    void setMinStrength(double value);                  // 最低力量
+    void setMinStamina(double value);                   // 最低耐力 
+    void setMinAgility(double value);                   // 最低敏捷
 
 protected:
     Game& game_logic_;
@@ -57,7 +63,13 @@ private:
     double hunger;          // 饱食度
     double fatigue;         // 疲劳值
 
+    // 最低属性值
+    double minStrength;     // 最低力量
+    double minStamina;      // 最低耐力
+    double minAgility;      // 最低敏捷
+
     double money;           // 积蓄
+    double skillPoints;     // 技能点
 };
 
 #endif // PLAYER_H

@@ -1,7 +1,8 @@
 #include "Player.h"
 
 Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(80), strength(1),
-                   stamina(1), agility(1), hunger(80), fatigue(80), money(1000), location("???") {
+                   stamina(1), agility(1), hunger(80), fatigue(80), money(1000), location("???"),
+                   minStrength(1), minStamina(1), minAgility(1), skillPoints(0) {
 }
 
 // TODO: 保存数据
@@ -91,3 +92,13 @@ void Player::addSavings(const double value) {
     money += value;
 }
 
+// 设置最低属性值(力量，耐力，敏捷)
+void Player::setMinStrength(double value) {
+    minStrength = value;
+}
+void Player::setMinStamina(double value) {
+    minStamina = value;
+}
+void Player::setMinAgility(double value) {
+    minAgility = value;
+}
