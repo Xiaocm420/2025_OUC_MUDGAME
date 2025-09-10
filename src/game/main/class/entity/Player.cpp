@@ -70,14 +70,17 @@ void Player::addHealthiness(const double value) {
 
 void Player::addStrength(const double value) {
     strength += value;
+    strength = std::max(strength, minStrength); // 确保不低于最低力量值
 }
 
 void Player::addStamina(const double value) {
     stamina += value;
+    stamina = std::max(stamina, minStamina);    // 确保不低于最低耐力值
 }
 
 void Player::addAgility(const double value) {
     agility += value;
+    agility = std::max(agility, minAgility);    // 确保不低于最低敏捷值
 }
 
 void Player::addHunger(const double value) {

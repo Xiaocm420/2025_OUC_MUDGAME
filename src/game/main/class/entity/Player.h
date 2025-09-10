@@ -43,6 +43,11 @@ public:
     void addFatigue(double value);                      // 疲劳值
     void addSavings(double value);                      // 积蓄
 
+    // 获取最低属性值
+    [[nodiscard]] double getMinStrength() const;        // 最低力量
+    [[nodiscard]] double getMinStamina() const;         // 最低耐力
+    [[nodiscard]] double getMinAgility() const;         // 最低敏捷
+    
     // 设置最低属性值
     void setMinStrength(double value);                  // 最低力量
     void setMinStamina(double value);                   // 最低耐力 
