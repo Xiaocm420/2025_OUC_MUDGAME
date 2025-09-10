@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include "../entity/Player.h"
 
 class Player;
 
