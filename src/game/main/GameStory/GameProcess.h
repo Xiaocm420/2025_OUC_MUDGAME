@@ -13,14 +13,14 @@ class GameProcess {
 public:
     /**
      * @brief 处理新游戏的开场流程。
-     * @param game 对Game核心对象的引用。
+     * @param game_logic_ 对Game核心对象的引用。
      */
-    static void newStart(Game& game) {
+    static void newStart(Game& game_logic_) {
         // 显示第一句引导语
-        game.getStoryController().processNodeByID(1);
+        game_logic_.getStoryController().processNodeByID(1);
         
         // 请求玩家输入名字 also a example of requestTextInput()
-        game.requestTextInput(
+        game_logic_.requestTextInput(
             // 参数1: prompt - 输入提示
             "输入你的名字:",
             // 参数2: rules - 一个规则列表，用于处理特殊输入
@@ -58,7 +58,7 @@ public:
         );
         
         // 步骤 4: 启动游戏主界面和循环
-        game.getView().showGameScreen();
+        game_logic_.getView().showGameScreen();
     }
 };
 

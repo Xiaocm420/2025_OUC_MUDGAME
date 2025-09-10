@@ -38,7 +38,7 @@ struct InputRequest {
     std::vector<std::string> choices;                               ///< (用于选项) 选项的文本列表。
     std::function<void(int, const std::string&)> onChoiceSelect;  ///< (用于选项) 选中后的回调。
     std::vector<InputRule> rules;                                   ///< (用于文本) 输入规则列表。
-    TextInputAction on_text_submit_default;                         ///< (用于文本) 无规则匹配时的默认动作。
+    TextInputAction onTextSubmitDefault;                         ///< (用于文本) 无规则匹配时的默认动作。
 };
 
 /**
@@ -54,7 +54,7 @@ public:
     void startNewGame();
     void loadGame() const;
     void showGameIntro() const;
-    void showGameSettings();
+    static void showGameSettings();
     void exitGame();
 
     // --- 服务访问器 ---
@@ -72,10 +72,10 @@ public:
     // --- 输入请求接口 ---
     void requestTextInput(const std::string& prompt, 
                           const std::vector<InputRule>& rules, 
-                          TextInputAction on_submit_default);
+                          TextInputAction onSubmitDefault);
     void requestChoice(const std::string& prompt, 
                        const std::vector<std::string>& choices, 
-                       std::function<void(int, const std::string&)> on_select);
+                       std::function<void(int, const std::string&)> onSelect);
 
     /**
      * @brief 注册当前活动的ScreenInteractive实例。
@@ -89,13 +89,13 @@ private:
      */
     void requestExit() const;
 
-    GameState current_state_;
-    std::optional<InputRequest> input_request_;
+    GameState currentState_;
+    std::optional<InputRequest> inputRequest_;
 
     std::unique_ptr<View> view_;
     std::unique_ptr<Dialog> dialog_;
     std::unique_ptr<Player> player_;
-    std::unique_ptr<StoryController> story_controller_;
+    std::unique_ptr<StoryController> storyController_;
 
     ftxui::ScreenInteractive* screen_ = nullptr;            ///< 存储指向当前活动屏幕的指针。
 };

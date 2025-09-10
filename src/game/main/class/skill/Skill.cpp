@@ -4,7 +4,6 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
-#include "../entity/Player.h"
 #include <cstdlib>
 #include <ctime>
 
@@ -43,19 +42,6 @@ std::string Skill::getAttributeType() const { return attributeType; }
 double Skill::getTrainingMultiplier() const { return trainingMultiplier; }
 double Skill::getEffectValue() const { return effectValue; }
 
-// ========== 属性设置方法实现 ==========
-/*
-void Skill::setMinAttributeValue(Player& user) {
-    // 根据 attributeType 设置玩家最低属性
-    if (attributeType == "strength") {
-        user.setMinStrength(std::max(user.getMinStrength(), minAttributeValue));
-    } else if (attributeType == "agility") {
-        user.setMinAgility(std::max(user.getMinAgility(), minAttributeValue));
-    } else if (attributeType == "stamina") {
-        user.setMinStamina(std::max(user.getMinStamina(), minAttributeValue));
-    }
-}
-*/
 
 // ========== 计算公式实现 ==========
 // 伤害 = 固定 + X * 系数 , 其中 X = 力量
@@ -99,7 +85,19 @@ bool Skill::canUse(const Player& user) const {
     if (user.getEnergy() * user.getFatigue() < requiredStamina) {
         return false;
     }
-    
+
+    // 如果是设置最低属性类技能，应先判断当前属性是否大于设置的最低属性
+    if(effectType == SkillEffectType::ATTRIBUTE_BOOST){
+        if(attributeType == "strength") {
+            if(user.getStrength() < minAttributeValue) return false;
+        } else if(attributeType == "agility") {
+            if(user.getAgility() < minAttributeValue) return false;
+        } else if(attributeType == "stamina") {
+            if(user.getStamina() < minAttributeValue) return false;
+        }
+    }
+
+
     return true;
 }
 
@@ -133,8 +131,13 @@ void Skill::execute(Player& user, Player& target) {
         }
         
         case SkillEffectType::ATTRIBUTE_BOOST: {
-            // 属性增益技能
-            // setMinAttributeValue(user); // 暂时注释，等待Player接口实现
+            if(attributeType == "strength") {
+                user.setMinStrength(std::max(user.getMinStrength(), minAttributeValue));
+            } else if(attributeType == "agility") {
+                user.setMinAgility(std::max(user.getMinAgility(), minAttributeValue));
+            } else if(attributeType == "stamina") {
+                user.setMinStamina(std::max(user.getMinStamina(), minAttributeValue));
+            }
             break;
         }
         
@@ -171,8 +174,7 @@ void Skill::execute(Player& user, Player& target) {
         
         case SkillEffectType::ENEMY_ATTRIBUTE_MOD: {
             // 敌人属性修改
-            // 假设有降低敌人耐力的方法
-            // target.reduceStamina(effectValue);
+            // target.addStamina(-effectValue);
             break;
         }
         

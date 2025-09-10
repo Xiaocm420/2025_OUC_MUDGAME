@@ -1,7 +1,8 @@
 #include "Player.h"
 
-Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(80), strength(1)，
-                   stamina(1), agility(1), hunger(80), fatigue(80), money(1000), location("???") 
+Player::Player(Game& game_logic) : game_logic_(game_logic), name("NOT_SET"), healthiness(80), strength(1),
+                   stamina(1), agility(1), hunger(80), fatigue(80), money(1000), location("???"),
+                   minStrength(1), minStamina(1), minAgility(1), skillPoints(0) {
 }
 
 // TODO: 保存数据
@@ -69,14 +70,17 @@ void Player::addHealthiness(const double value) {
 
 void Player::addStrength(const double value) {
     strength += value;
+    strength = std::max(strength, minStrength); // 确保不低于最低力量值
 }
 
 void Player::addStamina(const double value) {
     stamina += value;
+    stamina = std::max(stamina, minStamina);    // 确保不低于最低耐力值
 }
 
 void Player::addAgility(const double value) {
     agility += value;
+    agility = std::max(agility, minAgility);    // 确保不低于最低敏捷值
 }
 
 void Player::addHunger(const double value) {
@@ -91,3 +95,26 @@ void Player::addSavings(const double value) {
     money += value;
 }
 
+// 设置最低属性值(力量，耐力，敏捷)
+void Player::setMinStrength(double value) {
+    minStrength = value;
+}
+void Player::setMinStamina(double value) {
+    minStamina = value;
+}
+void Player::setMinAgility(double value) {
+    minAgility = value;
+}
+
+// 获取最低属性值(力量，耐力，敏捷)
+double Player::getMinStrength() const {
+    return minStrength;
+}
+
+double Player::getMinStamina() const {
+    return minStamina;
+}
+
+double Player::getMinAgility() const {
+    return minAgility;
+}
