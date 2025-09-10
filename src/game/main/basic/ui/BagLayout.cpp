@@ -1,4 +1,4 @@
-#include "Bag.h"
+#include "BagLayout.h"
 #include "../Game.h" // 假设 Game.h 的路径
 #include "FTXUI/component/screen_interactive.hpp"
 #include "FTXUI/dom/elements.hpp"
@@ -8,7 +8,7 @@
 
 using namespace ftxui;
 
-Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
+BagLayout::BagLayout(Game& game_logic) : game_logic_(game_logic) {
     initializeItems();
 
     // --- 在构造函数中创建所有持久化组件 ---
@@ -34,9 +34,9 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
 
             const auto& item = items_[globalIndex];
             auto element = vbox({
-                text(item.icon) | center | bold,
-                text(item.name) | center | size(WIDTH, LESS_THAN, 10),
-                text("x" + std::to_string(item.quantity)) | center | color(Color::Green)
+                text(item->icon) | center | bold,
+                text(item->name) | center | size(WIDTH, LESS_THAN, 10),
+                text("x" + std::to_string(item->amount)) | center | color(Color::Green)
             });
 
             if (s.active) {
@@ -44,7 +44,7 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
             }
             return element;
         };
-        
+
         itemButtons_[i] = Button("", on_click, option);
         interactive_components.push_back(itemButtons_[i]);
     }
@@ -63,7 +63,7 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
             selectedItemIndex_ = -1;
         }
     });
-    
+
     interactive_components.push_back(exitButton_);
     interactive_components.push_back(pagePrevButton_);
     interactive_components.push_back(pageNextButton_);
@@ -74,21 +74,18 @@ Bag::Bag(Game& game_logic) : game_logic_(game_logic) {
     Add(mainContainer_);
 }
 
-void Bag::initializeItems() {
+void BagLayout::initializeItems() {
     // 示例物品
-    items_ = {
-        {"food_apple", "苹果", "一个新鲜的苹果。", "🍎", 5, 1},
-
+    items_ = {};
         // TODO: 考虑放些初始物品
-    };
 }
 
-int Bag::getTotalPages() const {
+int BagLayout::getTotalPages() const {
     if (items_.empty()) return 1;
     return (items_.size() + itemsPerPage_ - 1) / itemsPerPage_;
 }
 
-Element Bag::Render() {
+Element BagLayout::Render() {
     if (!isShowing_) {
         return text("");
     }
@@ -105,7 +102,7 @@ Element Bag::Render() {
     }
 
     // Render函数只负责“布局”，不负责“创建”组件
-    
+
     Elements grid_rows;
     for (int r = 0; r < 5; ++r) {
         Elements row_elements;
@@ -135,10 +132,10 @@ Element Bag::Render() {
     std::string itemDetailClass;
     if (selectedItemIndex_ >= 0 && selectedItemIndex_ < static_cast<int>(items_.size())) {
         const auto& item = items_[selectedItemIndex_];
-        itemDetailName = "名称: " + item.name;
-        itemDetailDesc = "描述: " + item.description;
-        itemDetailAmount = "数量: " + std::to_string(item.quantity);
-        itemDetailClass = "类型: " + std::string(item.type == 0 ? "普通物品" : (item.type == 1 ? "食物" : "药品"));
+        itemDetailName = "名称: " + item->name;
+        itemDetailDesc = "描述: " + item->description;
+        itemDetailAmount = "数量: " + std::to_string(item->amount);
+        itemDetailClass = "类型: " + std::string(item->type == 0 ? "普通物品" : (item->type == 1 ? "食物" : "药品"));
     }
     auto detailPanel = vbox({
         text("物品详情") | bold | center,
@@ -166,20 +163,34 @@ Element Bag::Render() {
         separator(),
         controlPanel
     });
-    
+
     return window(text(" 背包 ") | bold, mainLayout) | clear_under;
 }
 
-void Bag::show() {
+void BagLayout::show() {
     isShowing_ = true;
     selectedItemIndex_ = -1;
     currentPage_ = 0;
 }
 
-void Bag::hide() {
+void BagLayout::hide() {
     isShowing_ = false;
 }
 
-bool Bag::isShowing() const {
+bool BagLayout::isShowing() const {
     return isShowing_;
+}
+
+void BagLayout::setItemAmount(const int amount, Item* item) {
+    auto index = std::ranges::find(items_.begin(), items_.end(), item);
+    if (index == items_.end()) {
+        items_.push_back(item);
+        index = items_.end() - 1;
+    }
+        (*index)->amount = amount;
+        if ((*index)->amount > 7) {
+            (*index)->amount = 7;
+        } else if ((*index)->amount < 0) {
+            (*index)->amount = 0;
+        }
 }

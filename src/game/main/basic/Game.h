@@ -36,7 +36,7 @@ enum class GameState {
 struct InputRequest {
     std::string prompt;                                             ///< 对玩家的输入提示语。
     std::vector<std::string> choices;                               ///< (用于选项) 选项的文本列表。
-    std::function<void(int, const std::string&)> on_choice_select;  ///< (用于选项) 选中后的回调。
+    std::function<void(int, const std::string&)> onChoiceSelect;  ///< (用于选项) 选中后的回调。
     std::vector<InputRule> rules;                                   ///< (用于文本) 输入规则列表。
     TextInputAction on_text_submit_default;                         ///< (用于文本) 无规则匹配时的默认动作。
 };
@@ -100,10 +100,6 @@ private:
     ftxui::ScreenInteractive* screen_ = nullptr;            ///< 存储指向当前活动屏幕的指针。
 };
 
-static std::string SYSTEM = "系统";
-inline static std::string PLAYER; // 比较方便，以后可能有改名卡道具
-
 inline static const std::string VOICEOVER; // 旁白
-inline static const std::string UNKNOWN = "？？？";
 
 #endif // GAME_H

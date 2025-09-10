@@ -34,7 +34,6 @@ public:
                         g.getDialog().addMessage("系统", "你发现了一个彩蛋:)！");
                         std::string name = trim(std::string(input));
                         g.getPlayer().setName(name);
-                        PLAYER = name; // 更新全局玩家名
                         
                         // 名字输入成功后，继续剧情
                         g.getStoryController().startStory(2);
@@ -46,13 +45,12 @@ public:
                 std::string name = trim(std::string(input));
                 // 进行名字有效性验证
                 if (name.empty() || name.length() > 10 || name.length() < 2) {
-                    g.getDialog().addMessage(UNKNOWN, "名字不合适，请重新输入一个2-10个字的名字。");
+                    g.getDialog().addMessage("<UNKNOWN>", "名字不合适，请重新输入一个2-10个字的名字。");
                     newStart(g);
                     return;
                 }
                 
                 g.getPlayer().setName(name);
-                PLAYER = name; // 更新全局玩家名
                 
                 // 名字输入成功后，继续剧情
                 g.getStoryController().startStory(2);
