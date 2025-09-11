@@ -1,55 +1,50 @@
-
 #ifndef MEDICINE_H
 #define MEDICINE_H
 
+#include "Player.h"
 #include <string>
-#include "../../entity/Player.h"
-using std::string;
 
-// 药品基类
-class Medicine : public Item {
-public:
-    explicit Medicine(const string& name, int price);
-    virtual ~Medicine();
-
-    // 获取药品名称
-    const string& getName() const;
-    // 获取价格
-    int getPrice() const;
-
-    // 药品使用效果
-    virtual void use(Player::Stats& stats) = 0;
-
-protected:
-    string name_;
-    int price_;
+// 药物类型枚举
+enum class MedicineType {
+    WOUND_RECOVERY,    // 创伤恢复药
+    STRENGTH_BOOST,    // 力量提升药
+    ENDURANCE_BOOST,   // 耐力提升药
+    AGILITY_BOOST,     // 敏捷提升药
+    SKILL_POINT        // 技能点药
 };
 
-// 药店药品
-class RecoveryMedication : public Medicine {
+class Medicine {
+private:
+    MedicineType type;
+    std::string name;
+    double price;
+    int attribute_boost;  // 属性提升值
+    int skill_points;     // 技能点数
+    bool is_permanent;    // 是否为永久buff
+
 public:
-    RecoveryMedication();
-    void use(Player::Stats& stats) override;
-};
-class StrengthEnhancedMedicine : public Medicine {
-public:
-    StrengthEnhancedMedicine();
-    void use(Player::Stats& stats) override;
-};
-class StaminaEnhancedMedicine : public Medicine {
-public:
-    StaminaEnhancedMedicine();
-    void use(Player::Stats& stats) override;
-};
-class AgilityEnhancedMedicine : public Medicine {
-public:
-    AgilityEnhancedMedicine();
-    void use(Player::Stats& stats) override;
-};
-class SkillPointBuffMedicine : public Medicine {
-public:
-    SkillPointBuffMedicine();
-    void use(Player::Stats& stats) override;
+    // 构造函数
+    Medicine(MedicineType type, 
+             std::string name, 
+             double price, 
+             int attribute_boost = 0, 
+             int skill_points = 0,
+             bool permanent = false);
+
+    // 获取药物信息
+    const std::string& getName() const;
+    MedicineType getType() const;
+    double getPrice() const;
+
+    // 使用药物
+    void useOnPlayer(Player& player) const;
+
+    // 药物创建工厂方法
+    static Medicine createWoundRecovery();
+    static Medicine createStrengthBoost();
+    static Medicine createEnduranceBoost();
+    static Medicine createAgilityBoost();
+    static Medicine createSkillPointPotion();
 };
 
 #endif // MEDICINE_H
