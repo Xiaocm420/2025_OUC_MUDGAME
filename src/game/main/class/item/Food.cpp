@@ -1,4 +1,5 @@
 #include "Food.h"
+<<<<<<< HEAD
 #include <stdexcept>
 
 // 私有构造函数
@@ -103,3 +104,5 @@ bool Food::isStoreExclusive(FoodType type) {
 bool Food::isGymExclusive(FoodType type) {
     return type == FoodType::CHOCOLATE_BAR || type == FoodType::PROTEIN_BAR;
 }
+=======
+>>>>>>> 64d7ceebd233b1860e602a9068517282b4522a35

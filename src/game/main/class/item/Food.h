@@ -1,6 +1,7 @@
 #ifndef FOOD_H
 #define FOOD_H
 
+<<<<<<< HEAD
 #include "AbstractItem.h"
 #include <string>
 
@@ -53,3 +54,10 @@ private:
 };
 
 #endif // FOOD_H
+=======
+class Food {
+
+};
+
+#endif // MUDGAME_FOOD_H
+>>>>>>> 64d7ceebd233b1860e602a9068517282b4522a35

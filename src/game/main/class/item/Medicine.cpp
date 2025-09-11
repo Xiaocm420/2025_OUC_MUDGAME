@@ -1,4 +1,6 @@
 #include "Medicine.h"
+#include "../entity/Player.h"
+#include <stdexcept>
 
 // 构造函数实现
 Medicine::Medicine(MedicineType type, 
@@ -14,9 +16,14 @@ Medicine::Medicine(MedicineType type,
       skill_points(skill_points),
       is_permanent(permanent) {}
 
-// 获取药物名称
+// 实现抽象接口：获取物品名称
 const std::string& Medicine::getName() const {
     return name;
+}
+
+// 实现抽象接口：获取物品价格
+int Medicine::getPrice() const {
+    return static_cast<int>(price); // 转换为int以匹配抽象接口定义
 }
 
 // 获取药物类型
@@ -24,12 +31,12 @@ MedicineType Medicine::getType() const {
     return type;
 }
 
-// 获取药物价格
-double Medicine::getPrice() const {
-    return price;
+// 实现抽象接口：使用物品（统一接口为use，内部调用原逻辑）
+void Medicine::use(Player& user) {
+    useOnPlayer(user); // 复用原有药物使用逻辑
 }
 
-// 使用药物逻辑实现
+// 药物使用逻辑实现（保留原有核心逻辑）
 void Medicine::useOnPlayer(Player& player) const {
     switch (type) {
         case MedicineType::WOUND_RECOVERY:
@@ -67,10 +74,13 @@ void Medicine::useOnPlayer(Player& player) const {
             // 增加技能点
             player.addSkillPoints(skill_points);
             break;
+
+        default:
+            throw std::invalid_argument("Unknown medicine type");
     }
 }
 
-// 药物创建方法
+// 药物创建工厂方法（保持原有配置）
 Medicine Medicine::createWoundRecovery() {
     return Medicine(
         MedicineType::WOUND_RECOVERY,
